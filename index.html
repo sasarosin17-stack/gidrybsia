@@ -1071,6 +1071,7 @@
     <button class="tab-btn" data-view="globalchat">Общий чат</button>
     <button class="tab-btn" data-view="news">Новости</button>
     <button class="tab-btn" data-view="achievements">Ачивки</button>
+    <button class="tab-btn" data-view="battlepass">Боевой пропуск</button>
     <button class="tab-btn" data-view="pets">Питомцы</button>
     <button class="tab-btn" data-view="clicker">Кликер</button>
     <button class="tab-btn" data-view="manikat">Маникат</button>
@@ -1214,6 +1215,15 @@
       </div>
 
       <div class="divider"></div>
+      <div class="panel-title"><span>Снаряжение</span></div>
+      <button class="btn btn-danger" id="adm_resetGear" style="margin-bottom:14px;">Сбросить всем броню и оружие</button>
+
+      <div class="panel-title"><span>Вход в аккаунт</span></div>
+      <div class="id-label" style="margin-bottom:8px;">Нажми на жителя — войдёшь как он. Потом «Выйти из аккаунта».</div>
+      <div id="admUserList" style="max-height:220px;overflow-y:auto;margin-bottom:12px;"></div>
+      <button class="btn btn-ghost" id="adm_exitImpersonate" style="display:none;margin-bottom:14px;">Выйти из аккаунта (назад в админ)</button>
+
+      <div class="divider"></div>
       <div class="panel-title"><span>Серверы / коллекции</span>
         <button class="btn btn-ghost" id="adm_refreshFs" style="font-size:11px;padding:4px 8px;">Обновить</button>
       </div>
@@ -1325,6 +1335,16 @@
       <div class="panel" id="newsDetailBox"></div>
     </div>
   </div>
+  
+  <div class="view" id="view-battlepass">
+    <div class="panel">
+      <div class="panel-title"><span>Боевой пропуск</span></div>
+      <div class="id-label" id="bpProgressLabel" style="margin-bottom:10px;">Кумыс: 0</div>
+      <div class="xp-bar" style="height:12px;margin-bottom:16px;"><div class="xp-fill" id="bpBarFill" style="width:0%;background:linear-gradient(90deg,#f97316,#fbbf24);"></div></div>
+      <div id="bpGrid" class="auction-grid"></div>
+    </div>
+  </div>
+
   <div class="view" id="view-achievements">
     <div class="panel">
       <div class="panel-title"><span>Достижения</span><span class="id-label" id="achProgress">0/0</span></div>
@@ -2564,6 +2584,7 @@ function switchView(name){
   if(name === 'globalchat'){ renderGlobalChat(); }
   if(name === 'news'){ renderNews(); }
   if(name === 'achievements'){ renderAchievements(); }
+  if(name === 'battlepass'){ renderBattlePass(); }
   if(name === 'pets'){ renderPets(); }
   if(name === 'adminpanel'){ if(!isAdmin){ showToast('НЕТ ДОСТУПА'); switchView('passports'); return; } renderAdminPanel(); }
 }
@@ -7682,6 +7703,37 @@ const ACHIEVEMENTS_CATALOG = [
   {id:'a_mg',name:'Геймер',desc:'Сыграть в мини-игру (счётчик)',check:m=>(m.minigamesPlayed||0)>=1,emoji:'🎮'},
   {id:'a_mg_20',name:'Аркадный босс',desc:'20 мини-игр',check:m=>(m.minigamesPlayed||0)>=20,emoji:'🕹️'},
   {id:'a_ai',name:'Разговор с машиной',desc:'Написать GidryaAi',check:m=>(m.aiChats||0)>=1,emoji:'🤖'},
+  {id:'a_daily1',name:'Ежедневка',desc:'Забрать ежедневную награду',check:m=>(m.dailyStreak||0)>=1,emoji:'📅'},
+  {id:'a_daily7',name:'Неделя в строю',desc:'Серия ежедневок 7 дней',check:m=>(m.dailyStreak||0)>=7,emoji:'🗓️'},
+  {id:'a_daily30',name:'Месяц дисциплины',desc:'Серия 30 дней',check:m=>(m.dailyStreak||0)>=30,emoji:'📆'},
+  {id:'a_bp1',name:'Пропуск открыт',desc:'1 награда боевого пропуска',check:m=>(m.bpClaimed||[]).length>=1,emoji:'🎟️'},
+  {id:'a_bp15',name:'Середина сезона',desc:'15 наград BP',check:m=>(m.bpClaimed||[]).length>=15,emoji:'🎫'},
+  {id:'a_bp30',name:'Финал сезона',desc:'Все 30 наград BP',check:m=>(m.bpClaimed||[]).length>=30,emoji:'🏅'},
+  {id:'a_clump',name:'Оранжевый сгусток',desc:'Получить финальную награду BP',check:m=>(m.bpClaimed||[]).includes('bp30'),emoji:'🧡'},
+  {id:'a_rich_1b',name:'Миллиардер',desc:'≥ 1 000 000 000 кумыса',check:m=>(m.kumys||0)>=1e9,emoji:'🏦'},
+  {id:'a_click_1b',name:'Кликер-бог',desc:'1 000 000 000 очков кликера',check:m=>(m.clickerScore||0)>=1e9,emoji:'🖱️'},
+  {id:'a_power_1k',name:'Титан силы',desc:'Сила клика ≥ 1000',check:m=>(m.clickerPower||1)>=1000,emoji:'💪'},
+  {id:'a_anom_100',name:'Аномалист',desc:'100 убитых аномалий',check:m=>(m.anomKills||0)>=100,emoji:'👾'},
+  {id:'a_duel_200',name:'Чемпион бойни',desc:'200 побед',check:m=>(m.fightWins||0)>=200,emoji:'🏆'},
+  {id:'a_msg_2k',name:'Мегафон',desc:'2000 сообщений',check:m=>(m.messagesSent||0)>=2000,emoji:'📢'},
+  {id:'a_forum_50',name:'Главредактор',desc:'50 постов',check:m=>(m.forumPostsCount||0)>=50,emoji:'📰'},
+  {id:'a_rad_10k',name:'Сверхкритик',desc:'≥ 10 000 ☢',check:m=>(m.radioCoins||0)>=10000,emoji:'☢️'},
+  {id:'a_dia_100',name:'Алмазный фонд',desc:'≥ 100 💎',check:m=>(m.diamonds||0)>=100,emoji:'💎'},
+  {id:'a_pet_500',name:'Суперхозяин',desc:'500 очков заботы',check:m=>(m.petCareScore||0)>=500,emoji:'🐾'},
+  {id:'a_gear_full',name:'Полный комплект',desc:'≥5 оружия и броня',check:m=>(m.weapons||[]).length>=5&&!!m.equippedArmor,emoji:'⚔️'},
+  {id:'a_mut5',name:'Мутаген',desc:'5 мутаций',check:m=>(m.mutations||[]).length>=5,emoji:'🧬'},
+  {id:'a_skin5',name:'Коллекционер скинов',desc:'5 скинов кликера',check:m=>(m.clickerSkins||[]).length>=5,emoji:'🎨'},
+  {id:'a_border5',name:'Рамочник',desc:'5 обводок',check:m=>(m.ownedBorders||[]).length>=5,emoji:'🖼️'},
+  {id:'a_decor3',name:'Дизайнер',desc:'3 декора страницы',check:m=>(m.decors||[]).length>=3,emoji:'🎭'},
+  {id:'a_online_7d',name:'Почти не спит',desc:'7 суток онлайна суммарно',check:m=>(m.onlineSeconds||0)>=604800,emoji:'⏰'},
+  {id:'a_casino_win',name:'Везунчик',desc:'Выигрыш в казино (счётчик)',check:m=>(m.casinoWins||0)>=1,emoji:'🍀'},
+  {id:'a_zero_power',name:'Без силы',desc:'Сила клика = 1',check:m=>(m.clickerPower||1)===1,emoji:'🪶'},
+  {id:'a_news',name:'Читатель новостей',desc:'Открыть новости',check:m=>(m.newsOpened||0)>=1,emoji:'📰'},
+  {id:'a_bp_mid',name:'Середина пути',desc:'Кумыс ≥ порога 15 уровня BP',check:m=>(m.kumys||0)>=50000000,emoji:'🛣️'},
+  {id:'a_nickname',name:'Идентичность',desc:'Свой ник',check:m=>!!(m.nickname&&m.nickname.length>1),emoji:'🏷️'},
+  {id:'a_admin_touch',name:'Под надзором',desc:'Админ заходил в аккаунт',check:m=>!!m.wasImpersonated,emoji:'👁️'},
+  {id:'a_orange',name:'Сгусток в кармане',desc:'Владеть оранжевым сгустком',check:m=>!!m.hasOrangeClump,emoji:'🟠'},
+
 ];
 function renderAchievements(){
   const me = citizens.find(c=>c.id===loggedInCitizenId);
@@ -8190,6 +8242,237 @@ document.getElementById('adm_halveAll')?.addEventListener('click', async () => {
   }
   showToast('Обновлено: '+n);
 });
+
+
+
+/* ===================== DAILY REWARD ===================== */
+function todayKey(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+async function tryDailyReward(me){
+  if(!me || !loggedInCitizenId) return;
+  const today = todayKey();
+  if(me.lastDailyDate === today) return;
+  let streak = Number(me.dailyStreak)||0;
+  // if yesterday, continue streak else reset
+  const y = new Date(); y.setDate(y.getDate()-1);
+  const yKey = y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0');
+  if(me.lastDailyDate === yKey) streak += 1; else streak = 1;
+  const amount = Math.floor(500000 * Math.pow(1.15, streak - 1));
+  try{
+    await updateDoc(doc(db,"citizens",me.id), {
+      kumys: increment(amount),
+      lastDailyDate: today,
+      dailyStreak: streak
+    });
+    me.kumys = (Number(me.kumys)||0) + amount;
+    me.lastDailyDate = today;
+    me.dailyStreak = streak;
+    showToast('📅 Ежедневка: +'+amount.toLocaleString('ru-RU')+' кумыса (день '+streak+')');
+    sounds.coin();
+    if(typeof checkAchievements==='function') checkAchievements(me);
+  }catch(e){ console.warn('daily', e); }
+}
+
+/* ===================== BATTLE PASS (30) ===================== */
+const BATTLE_PASS_REWARDS = [
+  {id:'bp1', need:100000, name:'Ник «Новичок сезона»', type:'nick', value:'Новичок сезона'},
+  {id:'bp2', need:250000, name:'5 000 кумыса', type:'kumys', value:5000},
+  {id:'bp3', need:500000, name:'3 💎', type:'diamonds', value:3},
+  {id:'bp4', need:1000000, name:'Ник «Странник»', type:'nick', value:'Странник'},
+  {id:'bp5', need:2000000, name:'Скин кликера «Янтарь»', type:'skin', value:'skin_n11'},
+  {id:'bp6', need:3500000, name:'15 000 кумыса', type:'kumys', value:15000},
+  {id:'bp7', need:5000000, name:'Ник «Боец пропуска»', type:'nick', value:'Боец пропуска'},
+  {id:'bp8', need:8000000, name:'10 💎', type:'diamonds', value:10},
+  {id:'bp9', need:12000000, name:'Обводка «Ушки медовые»', type:'border', value:'ear19'},
+  {id:'bp10', need:18000000, name:'50 000 кумыса', type:'kumys', value:50000},
+  {id:'bp11', need:25000000, name:'Ник «Ветеран BP»', type:'nick', value:'Ветеран BP'},
+  {id:'bp12', need:35000000, name:'25 💎', type:'diamonds', value:25},
+  {id:'bp13', need:50000000, name:'Скин «Император» (если нет)', type:'skin', value:'skin_n20'},
+  {id:'bp14', need:70000000, name:'100 000 кумыса', type:'kumys', value:100000},
+  {id:'bp15', need:100000000, name:'Ник «Элита сезона»', type:'nick', value:'Элита сезона'},
+  {id:'bp16', need:140000000, name:'50 💎', type:'diamonds', value:50},
+  {id:'bp17', need:200000000, name:'Декор «Сапфировый зал»', type:'decor', value:'d11'},
+  {id:'bp18', need:280000000, name:'250 000 кумыса', type:'kumys', value:250000},
+  {id:'bp19', need:400000000, name:'Ник «Легенда BP»', type:'nick', value:'Легенда BP'},
+  {id:'bp20', need:550000000, name:'100 💎', type:'diamonds', value:100},
+  {id:'bp21', need:750000000, name:'Обводка Hello Kitty', type:'border', value:'ear20'},
+  {id:'bp22', need:1000000000, name:'500 000 кумыса', type:'kumys', value:500000},
+  {id:'bp23', need:1500000000, name:'Ник «Абсолют»', type:'nick', value:'Абсолют'},
+  {id:'bp24', need:2000000000, name:'200 💎', type:'diamonds', value:200},
+  {id:'bp25', need:3000000000, name:'Декор «Конец истории»', type:'decor', value:'d30'},
+  {id:'bp26', need:4500000000, name:'1 000 000 кумыса', type:'kumys', value:1000000},
+  {id:'bp27', need:6000000000, name:'Ник «Гидра»', type:'nick', value:'Гидра'},
+  {id:'bp28', need:8000000000, name:'500 💎', type:'diamonds', value:500},
+  {id:'bp29', need:12000000000, name:'Эффект «Супер милашка»', type:'effect', value:'cute20'},
+  {id:'bp30', need:20000000000, name:'🧡 Оранжевый сгусток', type:'clump', value:1},
+];
+
+function renderBattlePass(){
+  const me = citizens.find(c=>c.id===loggedInCitizenId);
+  const grid = document.getElementById('bpGrid');
+  const lab = document.getElementById('bpProgressLabel');
+  const bar = document.getElementById('bpBarFill');
+  if(!grid) return;
+  if(!me){ grid.innerHTML='<div class="empty-list">Войди</div>'; return; }
+  const k = Number(me.kumys)||0;
+  const claimed = new Set(me.bpClaimed||[]);
+  const maxNeed = BATTLE_PASS_REWARDS[BATTLE_PASS_REWARDS.length-1].need;
+  if(lab) lab.textContent = 'Кумыс: '+k.toLocaleString('ru-RU')+' · прогресс к финалу: '+Math.min(100, Math.floor(k/maxNeed*100))+'%';
+  if(bar) bar.style.width = Math.min(100, k/maxNeed*100)+'%';
+  grid.innerHTML = BATTLE_PASS_REWARDS.map((r,i) => {
+    const unlocked = k >= r.need;
+    const got = claimed.has(r.id);
+    return `<div class="item-card" style="${got?'border-color:var(--green)':''}">
+      <div class="item-photo-placeholder" style="font-size:28px;">${r.id==='bp30'?'🧡':(i+1)}</div>
+      <div class="item-body">
+        <div class="item-name">${escapeHtml(r.name)}</div>
+        <div class="id-label">Нужно ${r.need.toLocaleString('ru-RU')} кумыса</div>
+        ${got?'<div style="color:var(--green);font-size:12px;margin-top:6px;">✓ Получено</div>':
+          unlocked?`<button class="btn btn-full" style="margin-top:8px;font-size:11px;padding:6px;" data-bp="${r.id}">Забрать</button>`:
+          '<div class="id-label" style="margin-top:6px;">🔒</div>'}
+      </div>
+    </div>`;
+  }).join('');
+  // special display for orange clump
+  if(claimed.has('bp30') || (me.hasOrangeClump)){
+    grid.insertAdjacentHTML('afterbegin', `<div class="item-card" style="grid-column:1/-1;text-align:center;border-color:#f97316;">
+      <div style="font-size:64px;line-height:1;filter:drop-shadow(0 0 12px #f97316);">🧡</div>
+      <div style="width:120px;height:120px;margin:8px auto;border-radius:24px;background:radial-gradient(circle at 35% 30%,#fdba74,#f97316 55%,#9a3412);box-shadow:0 0 30px rgba(249,115,22,0.6), inset 0 -8px 16px rgba(0,0,0,0.25);border:4px solid #67e8f9;position:relative;">
+        <div style="position:absolute;inset:28% 22% 35% 22%;display:flex;justify-content:space-between;align-items:center;">
+          <div style="width:28%;aspect-ratio:1;background:#111;border-radius:50%;box-shadow:inset -4px -2px 0 #444;"></div>
+          <div style="width:28%;aspect-ratio:1;background:#111;border-radius:50%;box-shadow:inset -4px -2px 0 #444;"></div>
+        </div>
+        <div style="position:absolute;bottom:22%;left:50%;width:10%;height:12%;background:#fff;border-radius:50%;transform:translateX(-50%);"></div>
+      </div>
+      <div class="item-name">Оранжевый сгусток</div>
+      <div class="id-label">Эксклюзив финала боевого пропуска</div>
+    </div>`);
+  }
+  grid.querySelectorAll('[data-bp]').forEach(btn => btn.addEventListener('click', () => claimBattlePass(btn.dataset.bp)));
+}
+
+async function claimBattlePass(id){
+  const me = citizens.find(c=>c.id===loggedInCitizenId);
+  const r = BATTLE_PASS_REWARDS.find(x=>x.id===id);
+  if(!me||!r) return;
+  if((Number(me.kumys)||0) < r.need) return showToast('Не хватает кумыса');
+  if((me.bpClaimed||[]).includes(id)) return showToast('Уже получено');
+  const updates = { bpClaimed: arrayUnion(id) };
+  if(r.type==='kumys') updates.kumys = increment(r.value);
+  if(r.type==='diamonds') updates.diamonds = increment(r.value);
+  if(r.type==='nick') updates.nickname = r.value;
+  if(r.type==='skin'){ updates.clickerSkins = arrayUnion(r.value); updates.activeClickerSkin = r.value; }
+  if(r.type==='border'){ updates.ownedBorders = arrayUnion(r.value); updates.avatarBorder = r.value; }
+  if(r.type==='decor'){ updates.decors = arrayUnion(r.value); updates.pageDecor = r.value; }
+  if(r.type==='effect'){ updates.ownedEffects = arrayUnion(r.value); updates.activeEffect = r.value; }
+  if(r.type==='clump') updates.hasOrangeClump = true;
+  try{
+    await updateDoc(doc(db,"citizens",me.id), updates);
+    me.bpClaimed = [...(me.bpClaimed||[]), id];
+    if(r.type==='clump') me.hasOrangeClump = true;
+    if(r.type==='nick') me.nickname = r.value;
+    showToast('Награда: '+r.name);
+    sounds.win();
+    renderBattlePass();
+    if(typeof checkAchievements==='function') checkAchievements(me);
+  }catch(e){ showToast('Ошибка'); console.error(e); }
+}
+
+/* ===================== ADMIN: gear reset + impersonate ===================== */
+let adminBackupSession = null; // { wasAdmin: true }
+
+document.getElementById('adm_resetGear')?.addEventListener('click', async () => {
+  if(!isAdmin) return;
+  if(!confirm('Сбросить ВСЕМ оружие и броню?')) return;
+  let n=0;
+  for(const c of citizens){
+    try{
+      await updateDoc(doc(db,"citizens",c.id), {
+        weapons: [],
+        weaponLevels: {},
+        equippedArmor: '',
+        armorLevels: {},
+        armors: []
+      });
+      n++;
+    }catch(e){}
+  }
+  showToast('Снаряжение сброшено: '+n);
+  sounds.success();
+});
+
+function renderAdmUserList(){
+  const box = document.getElementById('admUserList');
+  if(!box) return;
+  box.innerHTML = citizens.slice().sort((a,b)=>(a.nickname||a.name||'').localeCompare(b.nickname||b.name||'')).map(c =>
+    `<div class="citizen-item" data-impersonate="${c.id}" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
+      <span>${escapeHtml(c.nickname||c.name||c.id)}</span>
+      <span class="id-label">войти →</span>
+    </div>`
+  ).join('') || '<div class="empty-list">Нет жителей</div>';
+  box.querySelectorAll('[data-impersonate]').forEach(el => el.addEventListener('click', () => impersonateUser(el.dataset.impersonate)));
+}
+
+async function impersonateUser(id){
+  if(!isAdmin && !adminBackupSession) return;
+  const c = citizens.find(x=>x.id===id);
+  if(!c) return showToast('Не найден');
+  adminBackupSession = { adminMode: true };
+  loggedInCitizenId = id;
+  try{
+    await updateDoc(doc(db,"citizens",id), { wasImpersonated: true });
+  }catch(e){}
+  setCookie('gid_session', id, 1);
+  // плашка выхода
+  let bar = document.getElementById('impersonateBar');
+  if(!bar){
+    bar = document.createElement('div');
+    bar.id = 'impersonateBar';
+    bar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:10000;background:#b45309;color:#fff;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;font-size:13px;';
+    document.body.appendChild(bar);
+  }
+  bar.style.display = 'flex';
+  bar.innerHTML = `<span>Режим админа: аккаунт <b>${escapeHtml(c.nickname||c.name||id)}</b></span><button class="btn" id="impersonateExitBtn" style="padding:4px 10px;font-size:12px;">Выйти из аккаунта</button>`;
+  document.getElementById('impersonateExitBtn').onclick = exitImpersonate;
+  document.getElementById('adm_exitImpersonate').style.display = '';
+  showToast('Вы вошли как '+ (c.nickname||c.name));
+  switchView('me');
+  if(typeof renderMeTab==='function') renderMeTab();
+}
+
+function exitImpersonate(){
+  if(!adminBackupSession) return;
+  adminBackupSession = null;
+  isAdmin = true;
+  loggedInCitizenId = null;
+  clearCookie('gid_session');
+  const bar = document.getElementById('impersonateBar');
+  if(bar) bar.style.display = 'none';
+  document.getElementById('adm_exitImpersonate').style.display = 'none';
+  updateAdminUI();
+  showToast('Снова админ');
+  switchView('adminpanel');
+}
+
+document.getElementById('adm_exitImpersonate')?.addEventListener('click', exitImpersonate);
+
+const _renderAdminPanelOrig = typeof renderAdminPanel === 'function' ? renderAdminPanel : null;
+renderAdminPanel = function(){
+  if(_renderAdminPanelOrig) _renderAdminPanelOrig();
+  renderAdmUserList();
+  if(adminBackupSession) document.getElementById('adm_exitImpersonate').style.display = '';
+};
+
+// Hook daily reward when session restores / login
+const _tryRestoreSession = typeof tryRestoreSession === 'function' ? tryRestoreSession : null;
+// after citizens load and login, call daily
+setInterval(() => {
+  if(!loggedInCitizenId) return;
+  const me = citizens.find(c=>c.id===loggedInCitizenId);
+  if(me && me.lastDailyDate !== todayKey()) tryDailyReward(me);
+}, 8000);
 
 
 let lastMsgNotifyId=null;
