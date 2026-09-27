@@ -870,6 +870,29 @@
   .toast.show{ opacity: 1; transform: translateY(0); }
 
   /* bottom mobile nav */
+
+  /* мобильная навигация: горизонтальный скролл всех вкладок */
+  @media (max-width: 700px){
+    .mobile-nav{
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      -webkit-overflow-scrolling: touch;
+      gap: 2px;
+      justify-content: flex-start !important;
+      padding: 6px 4px max(6px, env(safe-area-inset-bottom, 0px));
+    }
+    .mobile-nav button{
+      flex: 0 0 auto !important;
+      min-width: 64px;
+      font-size: 9px !important;
+      padding: 8px 6px !important;
+      white-space: nowrap;
+    }
+  }
+  /* mobile-nav-scroll-fix */
+
   .mobile-nav{ display:none; }
   @media (max-width: 700px){
     .tabs{ display:none; }
@@ -2159,6 +2182,14 @@
   <button data-view="minigames">Игры</button>
   <button data-view="photobase">Фото</button>
   <button data-view="mutations">Мутации</button>
+  <button data-view="xpmarket">Опыт</button>
+  <button data-view="funzone">Фишки</button>
+  <button data-view="clans">Кланы</button>
+  <button data-view="battlepass">Пропуск</button>
+  <button data-view="achievements">Ачивки</button>
+  <button data-view="pets">Питомцы</button>
+  <button data-view="news">Новости</button>
+  <button data-view="globalchat">Общий</button>
   <button data-view="exchange">Обмен</button>
   <button data-view="richest">Богачи</button>
   <button data-view="event" id="tabEventMobile" style="display:none; color:var(--amber);">Ивент</button>
