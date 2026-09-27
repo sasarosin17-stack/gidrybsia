@@ -1085,6 +1085,7 @@
     <button class="tab-btn" data-view="richest">Богатые</button>
     <button class="tab-btn" data-view="event" id="tabEvent" style="display:none; color:var(--amber);">⚡ Ивент</button>
     <button class="tab-btn" data-view="me">Я<span class="order-badge" id="rankBadge" style="display:none;"></span></button>
+    <button class="tab-btn" data-view="adminpanel" id="tabAdminPanel" style="display:none;">Админ</button>
   </div>
 
   <!-- PASSPORTS -->
@@ -1196,6 +1197,46 @@
   </div>
 
   <!-- ME -->
+  
+  <div class="view" id="view-adminpanel">
+    <div class="panel">
+      <div class="panel-title"><span>Админ-панель</span></div>
+      <div class="id-label" style="margin-bottom:12px;">Только для администратора. Действия пишутся в Firestore.</div>
+
+      <div class="panel-title"><span>Снижение кликов</span></div>
+      <div class="form-group"><label>ID жителя (или ник)</label><input id="adm_click_user" placeholder="id или ник"></div>
+      <div class="form-group"><label>Новый clickerScore</label><input id="adm_click_score" type="number" value="0"></div>
+      <div class="form-group"><label>Множитель силы клика (clickerPower)</label><input id="adm_click_power" type="number" value="1"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+        <button class="btn" id="adm_setClicks">Применить клики</button>
+        <button class="btn btn-danger" id="adm_zeroClicks">Обнулить клики</button>
+        <button class="btn btn-ghost" id="adm_halveAll">−50% всем clickerScore</button>
+      </div>
+
+      <div class="divider"></div>
+      <div class="panel-title"><span>Серверы / коллекции</span>
+        <button class="btn btn-ghost" id="adm_refreshFs" style="font-size:11px;padding:4px 8px;">Обновить</button>
+      </div>
+      <div class="id-label" style="margin-bottom:8px;">Папки = коллекции Firestore. Файлы = документы.</div>
+      <div id="admFsPath" class="id-label" style="margin-bottom:8px;font-family:var(--mono);">/</div>
+      <div id="admFsList" style="max-height:280px;overflow-y:auto;margin-bottom:12px;"></div>
+      <div id="admFsEditor" style="display:none;">
+        <div class="form-group"><label>Файл (JSON)</label>
+          <textarea id="admFsJson" rows="12" style="font-family:var(--mono);font-size:11px;"></textarea>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn" id="admFsSave">Сохранить</button>
+          <button class="btn btn-danger" id="admFsDelete">Удалить файл</button>
+          <button class="btn btn-ghost" id="admFsClose">Закрыть</button>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+        <input id="admNewDocId" placeholder="id нового файла" style="flex:1;min-width:120px;">
+        <button class="btn" id="admFsCreate">Создать файл {}</button>
+      </div>
+    </div>
+  </div>
+
   <div class="view" id="view-me">
     <div class="panel" id="meLoggedOutBox" style="display:none;">
       <div class="empty-list" style="padding:40px 10px;">Войди в систему, чтобы увидеть свой профиль</div>
@@ -1694,6 +1735,7 @@
   <button data-view="richest">Богачи</button>
   <button data-view="event" id="tabEventMobile" style="display:none; color:var(--amber);">Ивент</button>
   <button data-view="me">Я</button>
+  <button data-view="adminpanel" id="mobileAdminTab" style="display:none;">Админ</button>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1932,7 +1974,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
 import {
-  getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDoc, updateDoc, increment, arrayUnion, arrayRemove,
+  getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDoc, getDocs, updateDoc, increment, arrayUnion, arrayRemove,
   query, orderBy, limit as fsLimit
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
@@ -2523,6 +2565,7 @@ function switchView(name){
   if(name === 'news'){ renderNews(); }
   if(name === 'achievements'){ renderAchievements(); }
   if(name === 'pets'){ renderPets(); }
+  if(name === 'adminpanel'){ if(!isAdmin){ showToast('НЕТ ДОСТУПА'); switchView('passports'); return; } renderAdminPanel(); }
 }
 document.querySelectorAll('.tab-btn, .mobile-nav button').forEach(b => {
   b.addEventListener('click', () => { sounds.click(); switchView(b.dataset.view); });
@@ -2657,6 +2700,10 @@ function updateAdminUI(){
   adminPill.classList.toggle('on', isAdmin);
   document.getElementById('newBtn').style.display = isAdmin ? 'block' : 'none';
   document.getElementById('currencyAdminBox').style.display = isAdmin ? 'block' : 'none';
+  const at = document.getElementById('tabAdminPanel');
+  const mt = document.getElementById('mobileAdminTab');
+  if(at) at.style.display = isAdmin ? '' : 'none';
+  if(mt) mt.style.display = isAdmin ? '' : 'none';
   if(mode === 'view') renderDossier();
   renderRankRequests();
   updateSecretTabs();
@@ -7944,6 +7991,176 @@ async function askGroq(userText, me){
   }
   throw new Error(lastErr || 'Нет доступных моделей Groq');
 }
+
+
+
+/* ===================== ADMIN PANEL: клики + файловый браузер сервера ===================== */
+const ADMIN_SERVER_COLS = [
+  "citizens","auctionItems","messages","groups","forumPosts","forumComments",
+  "reviews","orders","reports","rankRequests","presence","duels","courts",
+  "photoBase","stickers","globalChat","news","newsComments"
+];
+let admFsCol = null; // null = root folders
+let admFsDocId = null;
+
+function renderAdminPanel(){
+  if(!isAdmin) return;
+  admFsCol = null;
+  admFsDocId = null;
+  document.getElementById('admFsEditor').style.display = 'none';
+  renderAdmFsList();
+}
+
+function renderAdmFsList(){
+  const list = document.getElementById('admFsList');
+  const pathEl = document.getElementById('admFsPath');
+  if(!list) return;
+  if(!admFsCol){
+    pathEl.textContent = '/ (серверы / коллекции)';
+    list.innerHTML = ADMIN_SERVER_COLS.map(c =>
+      `<div class="citizen-item" data-adm-col="${c}" style="cursor:pointer;display:flex;justify-content:space-between;">
+        <span>📁 ${c}</span><span class="id-label">открыть</span>
+      </div>`
+    ).join('');
+    list.querySelectorAll('[data-adm-col]').forEach(el => el.addEventListener('click', () => {
+      admFsCol = el.dataset.admCol;
+      loadAdmFolder();
+    }));
+    return;
+  }
+  pathEl.innerHTML = `/ <a href="#" id="admFsRoot" style="color:var(--green);">..</a> / ${admFsCol}/`;
+  document.getElementById('admFsRoot')?.addEventListener('click', e => {
+    e.preventDefault();
+    admFsCol = null;
+    admFsDocId = null;
+    document.getElementById('admFsEditor').style.display = 'none';
+    renderAdmFsList();
+  });
+  list.innerHTML = '<div class="id-label">Загрузка…</div>';
+  loadAdmFolder();
+}
+
+async function loadAdmFolder(){
+  const list = document.getElementById('admFsList');
+  if(!admFsCol || !list) return;
+  try{
+    const snap = await getDocs(collection(db, admFsCol));
+    if(snap.empty){
+      list.innerHTML = '<div class="empty-list">Папка пуста</div>';
+      return;
+    }
+    list.innerHTML = snap.docs.map(d => {
+      const preview = JSON.stringify(d.data()).slice(0,60);
+      return `<div class="citizen-item" data-adm-doc="${d.id}" style="cursor:pointer;">
+        <div style="display:flex;justify-content:space-between;gap:8px;">
+          <span>📄 ${escapeHtml(d.id)}</span>
+          <span class="id-label">${snap.docs.length}</span>
+        </div>
+        <div class="id-label" style="font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(preview)}…</div>
+      </div>`;
+    }).join('');
+    list.querySelectorAll('[data-adm-doc]').forEach(el => el.addEventListener('click', () => openAdmFile(el.dataset.admDoc)));
+  }catch(e){
+    list.innerHTML = `<div class="empty-list">Ошибка: ${escapeHtml(e.message||'')}</div>`;
+    console.error(e);
+  }
+}
+
+async function openAdmFile(docId){
+  if(!admFsCol || !isAdmin) return;
+  admFsDocId = docId;
+  try{
+    const snap = await getDoc(doc(db, admFsCol, docId));
+    const data = snap.exists() ? snap.data() : {};
+    document.getElementById('admFsEditor').style.display = '';
+    document.getElementById('admFsJson').value = JSON.stringify(data, null, 2);
+    document.getElementById('admFsPath').textContent = `/${admFsCol}/${docId}`;
+  }catch(e){
+    showToast('Не открыть файл');
+    console.error(e);
+  }
+}
+
+document.getElementById('adm_refreshFs')?.addEventListener('click', () => renderAdmFsList());
+document.getElementById('admFsClose')?.addEventListener('click', () => {
+  document.getElementById('admFsEditor').style.display = 'none';
+  admFsDocId = null;
+  renderAdmFsList();
+});
+document.getElementById('admFsSave')?.addEventListener('click', async () => {
+  if(!isAdmin || !admFsCol || !admFsDocId) return;
+  try{
+    const data = JSON.parse(document.getElementById('admFsJson').value);
+    await setDoc(doc(db, admFsCol, admFsDocId), data);
+    showToast('ФАЙЛ СОХРАНЁН');
+    sounds.success();
+  }catch(e){
+    showToast('Ошибка JSON/сохранения: '+(e.message||''));
+  }
+});
+document.getElementById('admFsDelete')?.addEventListener('click', async () => {
+  if(!isAdmin || !admFsCol || !admFsDocId) return;
+  if(!confirm('Удалить файл /'+admFsCol+'/'+admFsDocId+' ?')) return;
+  try{
+    await deleteDoc(doc(db, admFsCol, admFsDocId));
+    showToast('УДАЛЕНО');
+    document.getElementById('admFsEditor').style.display = 'none';
+    admFsDocId = null;
+    loadAdmFolder();
+  }catch(e){ showToast('Ошибка удаления'); }
+});
+document.getElementById('admFsCreate')?.addEventListener('click', async () => {
+  if(!isAdmin || !admFsCol) return showToast('Сначала открой папку');
+  const id = document.getElementById('admNewDocId').value.trim() || uid('doc');
+  try{
+    await setDoc(doc(db, admFsCol, id), { id, createdAt: Date.now(), _createdByAdmin: true });
+    showToast('СОЗДАНО: '+id);
+    document.getElementById('admNewDocId').value = '';
+    loadAdmFolder();
+  }catch(e){ showToast('Ошибка создания'); }
+});
+
+function findCitizenByAdmInput(q){
+  q = (q||'').trim().toLowerCase();
+  if(!q) return null;
+  return citizens.find(c => c.id === q || (c.nickname||'').toLowerCase()===q || (c.name||'').toLowerCase()===q)
+    || citizens.find(c => (c.nickname||'').toLowerCase().includes(q) || (c.name||'').toLowerCase().includes(q));
+}
+
+document.getElementById('adm_setClicks')?.addEventListener('click', async () => {
+  if(!isAdmin) return;
+  const c = findCitizenByAdmInput(document.getElementById('adm_click_user').value);
+  if(!c) return showToast('Житель не найден');
+  const score = Number(document.getElementById('adm_click_score').value)||0;
+  const power = Number(document.getElementById('adm_click_power').value)||1;
+  try{
+    await updateDoc(doc(db,"citizens",c.id), { clickerScore: score, clickerPower: power });
+    showToast('Клики обновлены: '+c.nickname);
+    sounds.success();
+  }catch(e){ showToast('Ошибка'); }
+});
+document.getElementById('adm_zeroClicks')?.addEventListener('click', async () => {
+  if(!isAdmin) return;
+  const c = findCitizenByAdmInput(document.getElementById('adm_click_user').value);
+  if(!c) return showToast('Житель не найден');
+  try{
+    await updateDoc(doc(db,"citizens",c.id), { clickerScore: 0 });
+    showToast('Клики обнулены');
+  }catch(e){ showToast('Ошибка'); }
+});
+document.getElementById('adm_halveAll')?.addEventListener('click', async () => {
+  if(!isAdmin) return;
+  if(!confirm('Снизить clickerScore на 50% У ВСЕХ жителей?')) return;
+  let n = 0;
+  for(const c of citizens){
+    const sc = Math.floor((Number(c.clickerScore)||0) / 2);
+    try{
+      await updateDoc(doc(db,"citizens",c.id), { clickerScore: sc });
+      n++;
+    }catch(e){}
+  }
+  showToast('Обновлено: '+n);
+});
 
 
 let lastMsgNotifyId=null;
