@@ -51,6 +51,62 @@
       linear-gradient(rgba(0,255,229,0.05) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255,46,196,0.05) 1px, transparent 1px) !important;
       background-color: var(--bg) !important; }
+
+  /* 5 новых тем */
+  html[data-theme="ocean"]{
+    --bg:#0a1628; --bg-panel:#0f2137; --bg-card:#132a45; --line:#1e3a5f;
+    --green:#38bdf8; --green-dim:#0ea5e9; --amber:#fbbf24; --red:#f87171;
+    --navy:#7dd3fc; --gold:#38bdf8;
+    --text:#e0f2fe; --text-dim:#7dd3fc; --mono:'Inter',sans-serif; --shadow:none;
+  }
+  html[data-theme="ocean"] body{
+    background-image: radial-gradient(ellipse at 20% 0%, rgba(56,189,248,0.15), transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(14,165,233,0.12), transparent 45%) !important;
+    background-color: var(--bg) !important;
+  }
+  html[data-theme="forest"]{
+    --bg:#0a1a0f; --bg-panel:#0f2418; --bg-card:#14301f; --line:#1a3d28;
+    --green:#4ade80; --green-dim:#22c55e; --amber:#a3e635; --red:#ef4444;
+    --navy:#86efac; --gold:#bef264;
+    --text:#dcfce7; --text-dim:#86efac; --mono:'Inter',sans-serif; --shadow:none;
+  }
+  html[data-theme="forest"] body{
+    background-image: radial-gradient(circle at 30% 20%, rgba(74,222,128,0.12), transparent 40%) !important;
+    background-color: var(--bg) !important;
+  }
+  html[data-theme="sunset"]{
+    --bg:#1a0a0a; --bg-panel:#2a1210; --bg-card:#3a1a14; --line:#5c2a1e;
+    --green:#fb923c; --green-dim:#f97316; --amber:#fbbf24; --red:#ef4444;
+    --navy:#fdba74; --gold:#fcd34d;
+    --text:#fff7ed; --text-dim:#fdba74; --mono:'Inter',sans-serif; --shadow:none;
+  }
+  html[data-theme="sunset"] body{
+    background-image: linear-gradient(180deg, #1a0a0a 0%, #2a1210 40%, #3a1a14 100%) !important;
+    background-color: var(--bg) !important;
+  }
+  html[data-theme="lavender"]{
+    --bg:#1a1025; --bg-panel:#241536; --bg-card:#2e1a45; --line:#4c2a6a;
+    --green:#c084fc; --green-dim:#a855f7; --amber:#e879f9; --red:#f472b6;
+    --navy:#d8b4fe; --gold:#f0abfc;
+    --text:#faf5ff; --text-dim:#d8b4fe; --mono:'Inter',sans-serif; --shadow:none;
+  }
+  html[data-theme="lavender"] body{
+    background-image: radial-gradient(circle at 70% 10%, rgba(192,132,252,0.18), transparent 45%) !important;
+    background-color: var(--bg) !important;
+  }
+  html[data-theme="mono"]{
+    --bg:#111; --bg-panel:#1a1a1a; --bg-card:#222; --line:#333;
+    --green:#e5e5e5; --green-dim:#a3a3a3; --amber:#d4d4d4; --red:#737373;
+    --navy:#fafafa; --gold:#a3a3a3;
+    --text:#f5f5f5; --text-dim:#a3a3a3; --mono:'Space Mono',monospace; --shadow:none;
+  }
+  html[data-theme="mono"] body{ background-color: #111 !important; background-image: none !important; }
+  html[data-theme="ocean"] .emblem{ background:linear-gradient(135deg,#38bdf8,#0ea5e9)!important; }
+  html[data-theme="forest"] .emblem{ background:linear-gradient(135deg,#4ade80,#166534)!important; }
+  html[data-theme="sunset"] .emblem{ background:linear-gradient(135deg,#fb923c,#c2410c)!important; }
+  html[data-theme="lavender"] .emblem{ background:linear-gradient(135deg,#c084fc,#7e22ce)!important; }
+  html[data-theme="mono"] .emblem{ background:linear-gradient(135deg,#e5e5e5,#525252)!important; color:#111!important; }
+
   html[data-theme="dark"] body{ background-image:
       linear-gradient(rgba(74,222,128,0.03) 1px, transparent 1px),
       linear-gradient(90deg, rgba(74,222,128,0.03) 1px, transparent 1px) !important;
@@ -1349,6 +1405,8 @@
     <button class="tab-btn" data-view="news">Новости</button>
     <button class="tab-btn" data-view="achievements">Ачивки</button>
     <button class="tab-btn" data-view="battlepass">Боевой пропуск</button>
+    <button class="tab-btn" data-view="funzone">Фишки ✨</button>
+    <button class="tab-btn" data-view="clans">Кланы</button>
     <button class="tab-btn" data-view="pets">Питомцы</button>
     <button class="tab-btn" data-view="clicker">Кликер</button>
     <button class="tab-btn" data-view="manikat">Маникат</button>
@@ -1614,6 +1672,55 @@
     </div>
   </div>
   
+  
+  
+  <div class="view" id="view-clans">
+    <div class="panel">
+      <div class="panel-title"><span>Кланы</span></div>
+      <div class="id-label" style="margin-bottom:12px;">Создай клан, зови друзей, копите общую казну.</div>
+      <div id="myClanBox"></div>
+      <div class="divider"></div>
+      <div class="panel-title"><span>Создать клан</span></div>
+      <div class="form-group"><label>Название</label><input id="clanNameInput" maxlength="24" placeholder="Название клана"></div>
+      <div class="form-group"><label>Тег (3-5 букв)</label><input id="clanTagInput" maxlength="5" placeholder="GID"></div>
+      <button class="btn" id="clanCreateBtn">Создать (50 000 кумыса)</button>
+      <div class="divider"></div>
+      <div class="panel-title"><span>Все кланы</span></div>
+      <div id="clansListBox"></div>
+    </div>
+  </div>
+
+  <div class="view" id="view-funzone">
+    <div class="panel">
+      <div class="panel-title"><span>Колесо удачи</span></div>
+      <div style="text-align:center;padding:12px;">
+        <div id="wheelResult" style="font-size:18px;font-weight:700;min-height:28px;margin-bottom:10px;">Крути!</div>
+        <button class="btn" id="luckyWheelBtn" style="padding:14px 28px;font-size:15px;">🎰 Крутить (10 000 кумыса)</button>
+        <div class="id-label" style="margin-top:8px;">Раз в 30 секунд. Призы: кумыс, XP, 💎, ☢</div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:14px;">
+      <div class="panel-title"><span>Ежедневные задания</span><button class="btn btn-ghost" id="refreshChallengesBtn" style="font-size:10px;padding:4px 8px;">Обновить</button></div>
+      <div id="challengesBox"></div>
+    </div>
+    <div class="panel" style="margin-top:14px;">
+      <div class="panel-title"><span>Промокод</span></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input id="promoInput" placeholder="Введи код..." style="flex:1;min-width:140px;">
+        <button class="btn" id="promoBtn">Активировать</button>
+      </div>
+      <div class="id-label" style="margin-top:8px;">Подсказки: GIDRYA2026 · HELLOKITTY · SANS · 67 · ORANGE</div>
+    </div>
+    <div class="panel" style="margin-top:14px;">
+      <div class="panel-title"><span>Мировое событие</span></div>
+      <div id="worldEventBox" class="id-label">Загрузка…</div>
+    </div>
+    <div class="panel" style="margin-top:14px;">
+      <div class="panel-title"><span>Комбо кликера</span></div>
+      <div id="comboBox" class="id-label">Кликай быстро в кликере — копи комбо ×2…×10</div>
+    </div>
+  </div>
+
   <div class="view" id="view-battlepass">
     <div class="panel">
       <div class="panel-title"><span>Боевой пропуск</span></div>
@@ -1671,8 +1778,13 @@
       </div>
       <button id="clickerBtn" style="width:140px; height:140px; border-radius:50%; background:radial-gradient(circle at 35% 30%, var(--green), var(--green-dim)); border:none; cursor:pointer; font-family:var(--mono); font-size:14px; color:var(--bg); font-weight:700; box-shadow:0 0 30px rgba(74,222,128,0.3);">КЛИК</button>
       <button class="btn btn-full" id="clickerCashoutBtn" style="margin-top:14px; max-width:280px; margin-left:auto; margin-right:auto;">Вывести (50% очков → старые фантики)</button>
-      <div class="panel" id="radClickerPanel" style="margin-top:16px; display:none; text-align:center;">
+      <div class="panel" id="radClickerPanel" style="margin-top:16px; text-align:center;">
         <div class="panel-title" style="justify-content:center;"><span>☢ Кликер радиации</span></div>
+        <div id="radClickerLocked" style="display:none; margin-bottom:10px;">
+          <div class="id-label" style="margin-bottom:8px;">Закрыто. Открыть: 250 000 кумыса или 2 500 ☢</div>
+          <button class="btn" id="radUnlockKumys" style="margin:4px;">Открыть за кумыс</button>
+          <button class="btn btn-ghost" id="radUnlockRadio" style="margin:4px;">Открыть за ☢</button>
+        </div>
         <div style="font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-bottom:8px;">Сила: <b id="radClickPowerLbl">1</b> · Дорогой апгрейд</div>
         <button id="radClickerBtn" style="width:120px;height:120px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d4ff00,#3d5c00);border:none;cursor:pointer;font-family:var(--mono);font-size:13px;color:#111;font-weight:700;">☢ КЛИК</button>
         <div style="margin-top:10px; font-family:var(--mono); font-size:12px;">Цена улучшения: <span id="radClickUpgradeCost">1000</span> ☢</div>
@@ -2201,6 +2313,11 @@
         <option value="white">⬜ Белая</option>
         <option value="dark">🌑 Тёмная</option>
         <option value="neon">✨ Неон</option>
+        <option value="ocean">🌊 Океан</option>
+        <option value="forest">🌲 Лес</option>
+        <option value="sunset">🌅 Закат</option>
+        <option value="lavender">💜 Лаванда</option>
+        <option value="mono">⬛ Монохром</option>
       </select>
     </div>
     <div class="divider"></div>
@@ -2746,7 +2863,33 @@ const BLACK_MARKET_ITEMS = [
   { id: 'energy_cap_4', name: 'Батарея IV', desc: '+20000 к лимиту энергии.', price: 148080, currency: 'radioCoins', emoji: '🔋' },
   { id: 'energy_cap_5', name: 'Батарея V', desc: '+500000 к лимиту энергии.', price: 151075, currency: 'radioCoins', emoji: '🔋' },
   { id: 'bm_n40', name: 'Легенда улиц', desc: 'Работа: Легенда улиц.', price: 154100, currency: 'radioCoins', emoji: '🕶️' },
-
+  { id: 'bm_cool1', name: 'Контрабанда #1', desc: 'Редкий товар с чёрного рынка. Бонус к репутации.', price: 70000, currency: 'radioCoins', emoji: '🕶️' },
+  { id: 'bm_cool2', name: 'Контрабанда #2', desc: 'Редкий товар с чёрного рынка. Бонус к репутации.', price: 97999, currency: 'radioCoins', emoji: '🕶️' },
+  { id: 'bm_cool3', name: 'Контрабанда #3', desc: 'Редкий товар с чёрного рынка. Бонус к репутации.', price: 137199, currency: 'radioCoins', emoji: '🕶️' },
+  { id: 'bm_cool4', name: 'Контрабанда #4', desc: 'Редкий товар с чёрного рынка. Бонус к репутации.', price: 192079, currency: 'radioCoins', emoji: '🕶️' },
+  { id: 'bm_cool5', name: 'Контрабанда #5', desc: 'Редкий товар с чёрного рынка. Бонус к репутации.', price: 268911, currency: 'radioCoins', emoji: '🕶️' },
+  { id: 'bm_cool6', name: 'Контрабанда #6', desc: 'Редкий товар с чёрного рынка. Бонус к репутации.', price: 376476, currency: 'radioCoins', emoji: '🕶️' },
+  { id: 'bm_cool7', name: 'Контрабанда #7', desc: 'Редкий товар с чёрного рынка. Бонус к репутации.', price: 527067, currency: 'radioCoins', emoji: '🕶️' },
+  { id: 'bm_cool8', name: 'Контрабанда #8', desc: 'Редкий товар с чёрного рынка. Бонус к репутации.', price: 737894, currency: 'radioCoins', emoji: '🕶️' },
+  { id: 'bm_cool9', name: 'Контрабанда #9', desc: 'Редкий товар с чёрного рынка. Бонус к репутации.', price: 1033052, currency: 'radioCoins', emoji: '🕶️' },
+  { id: 'bm_cool10', name: 'Контрабанда #10', desc: 'Редкий товар с чёрного рынка. Бонус к репутации.', price: 1446273, currency: 'radioCoins', emoji: '🕶️' },
+  { id: 'bm_cool11', name: 'Контрабанда #11', desc: 'Редкий товар с чёрного рынка. Бонус к репутации.', price: 2024782, currency: 'radioCoins', emoji: '🕶️' },
+  { id: 'bm_cool12', name: 'Контрабанда #12', desc: 'Редкий товар с чёрного рынка. Бонус к репутации.', price: 2834695, currency: 'radioCoins', emoji: '🕶️' },
+  { id: 'bm_cool13', name: 'Контрабанда #13', desc: 'Редкий товар с чёрного рынка. Бонус к репутации.', price: 3968573, currency: 'radioCoins', emoji: '🕶️' },
+  { id: 'bm_cool14', name: 'Контрабанда #14', desc: 'Редкий товар с чёрного рынка. Бонус к репутации.', price: 5556003, currency: 'radioCoins', emoji: '🕶️' },
+  { id: 'bm_cool15', name: 'Контрабанда #15', desc: 'Редкий товар с чёрного рынка. Бонус к репутации.', price: 7778404, currency: 'radioCoins', emoji: '🕶️' },
+  { id: 'bm_badge_rad', name: 'Значок ☢', desc: 'Косметика в паспорт. Без дохода.', price: 120, currency: 'radioCoins', emoji: '🎖️' },
+  { id: 'bm_frame_soft', name: 'Мягкая рамка', desc: 'Косметика профиля.', price: 200, currency: 'radioCoins', emoji: '🖼️' },
+  { id: 'bm_title_scout', name: 'Титул «Скаут»', desc: 'Работа: Скаут (косметика).', price: 350, currency: 'radioCoins', emoji: '🧭' },
+  { id: 'bm_sticker_slot', name: 'Слот стикера', desc: '+1 к лимиту стикеров (макс +5).', price: 500, currency: 'radioCoins', emoji: '📎' },
+  { id: 'bm_energy_sip', name: 'Глоток энергии', desc: '+20 энергии один раз.', price: 80, currency: 'radioCoins', emoji: '🥤' },
+  { id: 'bm_rename_token', name: 'Жетон переименования', desc: 'Сменить ник бесплатно 1 раз.', price: 600, currency: 'radioCoins', emoji: '🏷️' },
+  { id: 'bm_bio_theme', name: 'Тема био', desc: 'Цветная полоска в описании.', price: 400, currency: 'radioCoins', emoji: '🎨' },
+  { id: 'bm_quiet_hour', name: 'Тихий час', desc: '1 час без случайных ивент-штрафов (флаг).', price: 900, currency: 'radioCoins', emoji: '🌙' },
+  { id: 'bm_pet_treat', name: 'Лакомство питомцу', desc: '+15 настроения питомца.', price: 150, currency: 'radioCoins', emoji: '🍪' },
+  { id: 'bm_forum_pin', name: 'Пин на пост', desc: 'Косметика «закреплено» (флаг).', price: 700, currency: 'radioCoins', emoji: '📌' },
+  { id: 'bm_auction_boost', name: 'Аукционный колокольчик', desc: 'Уведомление о своих заказах ярче (косметика).', price: 250, currency: 'radioCoins', emoji: '🔔' },
+  { id: 'bm_rad_boost_tiny', name: 'Усилитель ☢', desc: '+1 к силе ☢-кликера (дорого).', price: 5000, currency: 'radioCoins', emoji: '☢️' },
 ];
 let cookiesEnabled = getCookie('gid_cookies_pref') !== 'off';
 
@@ -2912,6 +3055,8 @@ function switchView(name){
   if(name === 'news'){ renderNews(); }
   if(name === 'achievements'){ renderAchievements(); }
   if(name === 'battlepass'){ renderBattlePass(); }
+  if(name === 'funzone'){ renderFunZone(); }
+  if(name === 'clans'){ renderClans(); }
   if(name === 'pets'){ renderPets(); }
   if(name === 'adminpanel'){ if(!isAdmin){ showToast('НЕТ ДОСТУПА'); switchView('passports'); return; } renderAdminPanel(); }
 }
@@ -3511,9 +3656,17 @@ async function resolveDelivery(orderId, wasDelivered){
       if(escrowed && o.sellerId){
         await updateDoc(doc(db, "citizens", o.sellerId), { [field]: increment(o.itemPrice || 0) });
       }
+      // бонус продавцу: +500 ☢ за каждую успешную продажу
+      if(o.sellerId){
+        try{
+          await updateDoc(doc(db, "citizens", o.sellerId), { radioCoins: increment(500) });
+          const seller = citizens.find(c => c.id === o.sellerId);
+          if(seller) seller.radioCoins = (Number(seller.radioCoins)||0) + 500;
+        }catch(e){}
+      }
       await updateDoc(doc(db, "orders", orderId), { status: 'completed' });
       sounds.success();
-      showToast('СДЕЛКА ЗАВЕРШЕНА');
+      showToast('СДЕЛКА ЗАВЕРШЕНА · продавец +500 ☢');
     } else {
       if(escrowed && o.buyerId){
         await updateDoc(doc(db, "citizens", o.buyerId), { [field]: increment(o.itemPrice || 0) });
@@ -4124,6 +4277,34 @@ async function buyBlackMarketItem(itemId, useDiamonds){
       updates.energyMax = (Number(me.energyMax)||100) + 20000; msg = 'ЛИМИТ ЭНЕРГИИ +20000';
     } else if(it.id === 'energy_cap_5'){
       updates.energyMax = (Number(me.energyMax)||100) + 500000; msg = 'ЛИМИТ ЭНЕРГИИ +500000';
+    } else if(it.id === 'bm_badge_rad'){
+      updates.meme = (me.meme||'') + ' ☢'; msg = 'ЗНАЧОК ☢';
+    } else if(it.id === 'bm_frame_soft'){
+      updates.ownedBorders = arrayUnion('neon'); msg = 'Мягкая рамка (неон)';
+    } else if(it.id === 'bm_title_scout'){
+      updates.job = 'Скаут'; msg = 'ТИТУЛ: Скаут';
+    } else if(it.id === 'bm_sticker_slot'){
+      const slots = Math.min(5, (Number(me.extraStickerSlots)||0) + 1);
+      updates.extraStickerSlots = slots; msg = 'Слоты стикеров +1 (всего '+slots+')';
+    } else if(it.id === 'bm_energy_sip'){
+      const max = getEnergyMax(me);
+      updates.energy = Math.min(max, getEnergy(me) + 20); msg = '+20 энергии';
+    } else if(it.id === 'bm_rename_token'){
+      updates.renameTokens = (Number(me.renameTokens)||0) + 1; msg = 'Жетон переименования +1';
+    } else if(it.id === 'bm_bio_theme'){
+      updates.bioTheme = true; msg = 'Тема био включена';
+    } else if(it.id === 'bm_quiet_hour'){
+      updates.quietUntil = Date.now() + 3600000; msg = 'Тихий час 1ч';
+    } else if(it.id === 'bm_pet_treat'){
+      updates.petMood = Math.min(100, (Number(me.petMood)||50) + 15); msg = 'Питомец +15 настроения';
+    } else if(it.id === 'bm_forum_pin'){
+      updates.forumPinCosmetic = true; msg = 'Пин (косметика)';
+    } else if(it.id === 'bm_auction_boost'){
+      updates.auctionBell = true; msg = 'Колокольчик аукциона';
+    } else if(it.id === 'bm_rad_boost_tiny'){
+      updates.radClickPower = (Number(me.radClickPower)||1) + 1;
+      updates.hasRadClicker = true;
+      msg = 'СИЛА ☢ +1';
     }
 
     // Штраф 70000 + таймер 10 мин; шанс тюрьмы при активных закупках
@@ -4877,15 +5058,20 @@ function renderClicker(){
   const radPanel = document.getElementById('radClickerPanel');
   if(radPanel){
     const unlocked = !!(me.hasRadClicker || (me.mutations || []).includes('mut_rad_click'));
-    radPanel.style.display = unlocked ? '' : 'none';
-    if(unlocked){
-      const rp = Number(me.radClickPower) || 1;
-      const cost = Math.floor(1000 * Math.pow(2.5, rp - 1));
-      const pl = document.getElementById('radClickPowerLbl');
-      const cl = document.getElementById('radClickUpgradeCost');
-      if(pl) pl.textContent = String(rp);
-      if(cl) cl.textContent = String(cost);
-    }
+    radPanel.style.display = '';
+    const lock = document.getElementById('radClickerLocked');
+    if(lock) lock.style.display = unlocked ? 'none' : '';
+    const btn = document.getElementById('radClickerBtn');
+    const up = document.getElementById('radClickUpgradeBtn');
+    if(btn) btn.style.opacity = unlocked ? '1' : '0.4';
+    if(up) up.style.display = unlocked ? '' : 'none';
+    const rp = Number(me.radClickPower) || 1;
+    // дорогой прогресс: 500 * 3^(lvl-1)
+    const cost = Math.floor(2000 * Math.pow(4, rp - 1));
+    const pl = document.getElementById('radClickPowerLbl');
+    const cl = document.getElementById('radClickUpgradeCost');
+    if(pl) pl.textContent = String(rp);
+    if(cl) cl.textContent = String(cost);
   }
 }
 function refreshClickerCosts(){
@@ -4969,9 +5155,18 @@ document.getElementById('clickerBtn').addEventListener('click', () => {
 
   const power = Number(me.clickerPower) || 1;
   // 30% от реальной силы клика за единицу числа
-  const effectivePower = Math.max(1, Math.floor(power * 0.3));
+  let effectivePower = Math.max(1, Math.floor(power * 0.3));
+  // комбо + мировое событие
+  if(typeof window.__registerClickCombo === 'function') window.__registerClickCombo();
+  const comboMul = (typeof window.__getClickComboMul === 'function') ? window.__getClickComboMul() : 1;
+  const eventMul = (typeof getEventMul === 'function') ? getEventMul('clickMul') : 1;
+  effectivePower = Math.max(1, Math.floor(effectivePower * comboMul * eventMul));
   const gain = amount * effectivePower;
   clickerLocalScore += gain;
+  if(comboMul > 1){
+    const tip = document.getElementById('clickerScore');
+    if(tip) tip.title = 'Комбо ×'+comboMul;
+  }
   document.getElementById('clickerScore').textContent = Math.floor(clickerLocalScore);
   clickerDirty = true;
 
@@ -6679,38 +6874,60 @@ document.getElementById('clickerCashoutBtn')?.addEventListener('click', async ()
 document.getElementById('radClickerBtn')?.addEventListener('click', async () => {
   if(!loggedInCitizenId) return showToast('ВОЙДИ');
   const me = citizens.find(c => c.id === loggedInCitizenId);
-  if(!me || !(me.hasRadClicker || (me.mutations||[]).includes('mut_rad_click'))) return showToast('Нужна мутация «Кликер радиации»');
+  if(!me || !(me.hasRadClicker || (me.mutations||[]).includes('mut_rad_click'))) return showToast('Сначала открой ☢-кликер');
   const rp = Number(me.radClickPower) || 1;
-  me.radioCoins = (Number(me.radioCoins)||0) + rp;
-  try{
-    bufferIncRadioCoins(rp);
-  }catch(e){}
+  const eventMul = (typeof getEventMul === 'function') ? getEventMul('radMul') : 1;
+  const gain = Math.max(1, Math.floor(rp * eventMul));
+  me.radioCoins = (Number(me.radioCoins)||0) + gain;
+  try{ bufferIncRadioCoins(gain); }catch(e){}
   const el = document.getElementById('radioCoinsLabel');
   if(el) el.textContent = '☢ ' + (Number(me.radioCoins)||0);
   sounds.click();
-  showToast('+'+rp+' ☢');
 });
 document.getElementById('radClickUpgradeBtn')?.addEventListener('click', async () => {
   if(!loggedInCitizenId) return showToast('ВОЙДИ');
   const me = citizens.find(c => c.id === loggedInCitizenId);
   if(!me) return;
+  if(!(me.hasRadClicker || (me.mutations||[]).includes('mut_rad_click'))) return showToast('Сначала открой кликер');
   const rp = Number(me.radClickPower) || 1;
-  const cost = Math.floor(1000 * Math.pow(2.5, rp - 1));
+  const cost = Math.floor(2000 * Math.pow(4, rp - 1)); // 500, 1500, 4500, 13500...
   if((Number(me.radioCoins)||0) < cost) return showToast('НЕ ХВАТАЕТ ☢ (нужно '+cost+')');
   try{
     await updateDoc(doc(db, "citizens", me.id), {
       radioCoins: increment(-cost),
-      radClickPower: rp + 1,
-      hasRadClicker: true
+      radClickPower: rp + 1
     });
     me.radioCoins = (Number(me.radioCoins)||0) - cost;
     me.radClickPower = rp + 1;
-    me.hasRadClicker = true;
     sounds.coin();
     showToast('СИЛА ☢ → '+(rp+1));
     renderClicker();
   }catch(e){ showToast('ОШИБКА'); }
 });
+async function unlockRadClicker(payWith){
+  if(!loggedInCitizenId) return showToast('ВОЙДИ');
+  const me = citizens.find(c => c.id === loggedInCitizenId);
+  if(!me) return;
+  if(me.hasRadClicker || (me.mutations||[]).includes('mut_rad_click')) return showToast('Уже открыто');
+  try{
+    if(payWith === 'kumys'){
+      if((Number(me.kumys)||0) < 250000) return showToast('Нужно 250 000 кумыса');
+      await updateDoc(doc(db,"citizens",me.id), { kumys: increment(-250000), hasRadClicker: true, radClickPower: 1 });
+      me.kumys = (Number(me.kumys)||0) - 250000;
+    } else {
+      if((Number(me.radioCoins)||0) < 2500) return showToast('Нужно 2 500 ☢');
+      await updateDoc(doc(db,"citizens",me.id), { radioCoins: increment(-2500), hasRadClicker: true, radClickPower: 1 });
+      me.radioCoins = (Number(me.radioCoins)||0) - 2500;
+    }
+    me.hasRadClicker = true;
+    me.radClickPower = 1;
+    showToast('☢ Кликер открыт!');
+    sounds.success();
+    renderClicker();
+  }catch(e){ showToast('Ошибка'); }
+}
+document.getElementById('radUnlockKumys')?.addEventListener('click', () => unlockRadClicker('kumys'));
+document.getElementById('radUnlockRadio')?.addEventListener('click', () => unlockRadClicker('radio'));
 
 /* Обменник: 1 секстиллион старых = 2 кумыса */
 const SEXTILLION = 1e21;
@@ -7035,7 +7252,7 @@ const MUTATION_ITEMS = [
   {id:'mut28',name:'Мутация Санса',desc:'Титул Санс',price: 6666650,effect:'sans',side:'Громкая музыка',emoji:'💀'},
   {id:'mut29',name:'Барьер 90%',desc:'Поглощение 90%',price: 5333350,effect:'abs90',side:'Урон 1',emoji:'💎'},
   {id:'mut30',name:'Цена государства',desc:'+10% доход',price: 13333350,effect:'income10',side:'−40% баланса',emoji:'🏛️'},
-  {id:'mut_rad_click',name:'Кликер радиации',desc:'Открывает ☢-кликер (очень дорогие апгрейды)',price: 50000000,effect:'radClicker',side:'−5% текущего кумыса',emoji:'☢'},
+  {id:'mut_rad_click',name:'Кликер радиации',desc:'Открывает ☢-кликер (апгрейды за ☢)',price: 5000000,effect:'radClicker',side:'−3% текущего кумыса',emoji:'☢'},
   {id:'mut_cute1',name:'Кошачьи ушки',desc:'Обводка ear1',price: 100,effect:'borderEar1',side:'−1 💎',emoji:'🐱'},
   {id:'mut_cute2',name:'Бантик',desc:'Милый эффект cute1',price: 120,effect:'effCute1',side:'−50 кумыса',emoji:'🎀'},
   {id:'mut_cute3',name:'Лапка удачи',desc:'+5% к выводу',price: 200,effect:'cashoutTiny',side:'Штраф 1000',emoji:'🐾'},
@@ -8351,6 +8568,9 @@ const _anomActionOrig = typeof anomAction === 'function' ? anomAction : null;
 // ===================== GIDRYA AI (Groq) =====================
 const GIDRYA_AI_ID = 'gidrya_ai_bot';
 const GROQ_API_KEY = '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';
+const AI_CHAT_ID_PREFIX = 'chat_gidrya_ai_';
+function getAiChatId(){ return AI_CHAT_ID_PREFIX + (loggedInCitizenId || 'guest'); }
+// legacy alias (не использовать для записи)
 const AI_CHAT_ID = 'chat_gidrya_ai';
 
 // inject into contacts list after render - patch renderContactsList
@@ -8373,7 +8593,7 @@ renderContactsList = function(){
 };
 function openGidryaAiChat(){
   if(!loggedInCitizenId) return showToast('ВОЙДИ');
-  currentChatId = AI_CHAT_ID;
+  currentChatId = getAiChatId();
   currentChatIsGroup = false;
   currentChatPeer = {
     id: GIDRYA_AI_ID,
@@ -8386,14 +8606,14 @@ function openGidryaAiChat(){
 }
 // intercept send in AI chat
 const _chatSendHandler = async function(){
-  if(currentChatId !== AI_CHAT_ID) return false;
+  if(currentChatId !== getAiChatId()) return false;
   const input = document.getElementById('chatTextInput');
   const text = (input?.value||'').trim();
   if(!text) return true;
   const me = citizens.find(c=>c.id===loggedInCitizenId);
   const mid = uid('msg');
   const userMsg = {
-    id: mid, chatId: AI_CHAT_ID,
+    id: mid, chatId: getAiChatId(),
     senderId: loggedInCitizenId,
     senderName: me?.nickname||me?.name||'?',
     text, createdAt: Date.now()
@@ -8410,7 +8630,7 @@ const _chatSendHandler = async function(){
     const reply = await askGroq(text, me);
     const rid = uid('msg');
     await setDoc(doc(db,"messages",rid), {
-      id: rid, chatId: AI_CHAT_ID,
+      id: rid, chatId: getAiChatId(),
       senderId: GIDRYA_AI_ID,
       senderName: 'GidryaAi',
       text: reply,
@@ -9042,6 +9262,442 @@ async function buyTalisman(id){
 }
 
 
+
+/* ===================== FUN ZONE: wheel, challenges, promo, events, combo ===================== */
+const PROMO_CODES = {
+  'GIDRYA2026': { kumys: 250000, label: '+250k кумыса' },
+  'HELLOKITTY': { diamonds: 5, label: '+5 💎' },
+  'SANS': { xp: 500, label: '+500 XP' },
+  '67': { kumys: 67000, label: '+67k кумыса' },
+  'ORANGE': { clump: 1, label: '🧡 Оранжевый сгусток (косметика)' },
+  'ADMINLOVE': { kumys: 1000000, diamonds: 10, label: '+1M кумыса и 10💎' },
+  'RADIOACTIVE': { radio: 500, label: '+500 ☢' },
+};
+
+const DAILY_CHALLENGES = [
+  { id:'ch_click', name:'Сделай 50 кликов в кликере', key:'clickerScore', delta:50, reward:{kumys:30000} },
+  { id:'ch_msg', name:'Отправь 5 сообщений', key:'messagesSent', delta:5, reward:{xp:100} },
+  { id:'ch_xp', name:'Набери 30 XP кликером опыта', key:'xp', delta:30, reward:{kumys:50000} },
+  { id:'ch_anom', name:'Убей 1 аномалию', key:'anomKills', delta:1, reward:{radio:50} },
+  { id:'ch_duel', name:'Выиграй дуэль', key:'fightWins', delta:1, reward:{kumys:80000} },
+];
+
+const WORLD_EVENTS = [
+  { name:'🌧️ Кислотный дождь', desc:'Клики ×1.5 на 10 минут', type:'clickMul', val:1.5, mins:10 },
+  { name:'📡 DDOS-шторм', desc:'+50 кумыса каждые 5 сек', type:'passiveKumys', val:50, mins:8 },
+  { name:'✨ Звёздный час', desc:'XP кликер ×2', type:'xpMul', val:2, mins:12 },
+  { name:'🎰 Ночь казино', desc:'Выигрыши в казино ×1.3', type:'casinoMul', val:1.3, mins:15 },
+  { name:'🐱 День котиков', desc:'Все цены −10% (локально в UI)', type:'sale', val:0.9, mins:20 },
+  { name:'☢️ Радиоактивный рассвет', desc:'☢ из мини-игр ×2', type:'radMul', val:2, mins:10 },
+];
+
+let activeWorldEvent = null;
+let worldEventUntil = 0;
+let lastWheelAt = 0;
+let clickCombo = 0;
+let lastComboAt = 0;
+let challengeBaseline = {};
+
+function todayStr(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function renderFunZone(){
+  renderChallenges();
+  renderWorldEventBox();
+  const me = citizens.find(c=>c.id===loggedInCitizenId);
+  const cb = document.getElementById('comboBox');
+  if(cb) cb.textContent = 'Текущее комбо: ×' + Math.max(1, clickCombo) + (me? ' · кумыс '+Number(me.kumys||0).toLocaleString('ru-RU'):'');
+}
+
+function renderWorldEventBox(){
+  const box = document.getElementById('worldEventBox');
+  if(!box) return;
+  if(activeWorldEvent && Date.now() < worldEventUntil){
+    const left = Math.ceil((worldEventUntil - Date.now())/60000);
+    box.innerHTML = `<b>${activeWorldEvent.name}</b><br>${activeWorldEvent.desc}<br>Осталось ~${left} мин.`;
+  } else {
+    box.textContent = 'Сейчас спокойно. Новое событие запускается автоматически.';
+  }
+}
+
+function maybeStartWorldEvent(){
+  if(activeWorldEvent && Date.now() < worldEventUntil) return;
+  if(Math.random() > 0.35) return; // not always
+  activeWorldEvent = WORLD_EVENTS[Math.floor(Math.random()*WORLD_EVENTS.length)];
+  worldEventUntil = Date.now() + activeWorldEvent.mins * 60000;
+  showToast('Событие: ' + activeWorldEvent.name);
+  try{ sounds.win(); }catch(e){}
+  renderWorldEventBox();
+}
+setInterval(maybeStartWorldEvent, 120000);
+setTimeout(maybeStartWorldEvent, 15000);
+
+function getEventMul(type){
+  if(!activeWorldEvent || Date.now() > worldEventUntil) return 1;
+  if(activeWorldEvent.type === type) return activeWorldEvent.val;
+  return 1;
+}
+
+document.getElementById('luckyWheelBtn')?.addEventListener('click', async () => {
+  if(!loggedInCitizenId) return showToast('ВОЙДИ');
+  const now = Date.now();
+  if(now - lastWheelAt < 30000) return showToast('Подожди ' + Math.ceil((30000-(now-lastWheelAt))/1000) + 'с');
+  const me = citizens.find(c=>c.id===loggedInCitizenId);
+  if((Number(me?.kumys)||0) < 10000) return showToast('Нужно 10 000 кумыса');
+  lastWheelAt = now;
+  try{
+    await updateDoc(doc(db,"citizens",me.id), { kumys: increment(-10000) });
+    me.kumys = (Number(me.kumys)||0) - 10000;
+  }catch(e){ showToast('Ошибка'); return; }
+  const prizes = [
+    {t:'kumys', v:5000, l:'5 000 кумыса'},
+    {t:'kumys', v:25000, l:'25 000 кумыса'},
+    {t:'kumys', v:100000, l:'100 000 кумыса'},
+    {t:'xp', v:50, l:'50 XP'},
+    {t:'xp', v:200, l:'200 XP'},
+    {t:'diamonds', v:1, l:'1 💎'},
+    {t:'diamonds', v:3, l:'3 💎'},
+    {t:'radio', v:20, l:'20 ☢'},
+    {t:'radio', v:100, l:'100 ☢'},
+    {t:'nothing', v:0, l:'Ничего 😅'},
+  ];
+  const p = prizes[Math.floor(Math.random()*prizes.length)];
+  const el = document.getElementById('wheelResult');
+  if(el) el.textContent = '…';
+  setTimeout(async () => {
+    if(el) el.textContent = '🎁 ' + p.l;
+    const up = {};
+    if(p.t==='kumys') up.kumys = increment(p.v);
+    if(p.t==='xp') up.xp = increment(p.v);
+    if(p.t==='diamonds') up.diamonds = increment(p.v);
+    if(p.t==='radio') up.radioCoins = increment(p.v);
+    if(Object.keys(up).length){
+      try{
+        await updateDoc(doc(db,"citizens",me.id), up);
+        if(p.t==='kumys') me.kumys = (Number(me.kumys)||0)+p.v;
+        if(p.t==='xp') me.xp = (Number(me.xp)||0)+p.v;
+        if(p.t==='diamonds') me.diamonds = (Number(me.diamonds)||0)+p.v;
+        if(p.t==='radio') me.radioCoins = (Number(me.radioCoins)||0)+p.v;
+      }catch(e){}
+    }
+    showToast(p.l);
+    try{ sounds.win(); }catch(e){}
+  }, 600);
+});
+
+function renderChallenges(){
+  const box = document.getElementById('challengesBox');
+  if(!box) return;
+  const me = citizens.find(c=>c.id===loggedInCitizenId);
+  if(!me){ box.innerHTML='<div class="empty-list">Войди</div>'; return; }
+  const day = todayStr();
+  if(me.challengeDay !== day){
+    // reset baselines
+    challengeBaseline = {};
+    DAILY_CHALLENGES.forEach(ch => {
+      challengeBaseline[ch.id] = Number(me[ch.key])||0;
+    });
+  }
+  const done = new Set(me.challengesDone||[]);
+  box.innerHTML = DAILY_CHALLENGES.map(ch => {
+    const base = (me.challengeBaselines && me.challengeBaselines[ch.id] != null)
+      ? me.challengeBaselines[ch.id]
+      : (challengeBaseline[ch.id]||0);
+    const cur = Number(me[ch.key])||0;
+    const progress = Math.max(0, cur - base);
+    const ok = progress >= ch.delta || done.has(ch.id);
+    const claimed = done.has(ch.id);
+    return `<div class="order-item" style="margin-bottom:8px;">
+      <div style="font-weight:600;">${escapeHtml(ch.name)}</div>
+      <div class="id-label">${Math.min(progress,ch.delta)} / ${ch.delta} ${claimed?'✓':''}</div>
+      ${claimed?'':(ok?`<button class="btn" style="margin-top:6px;font-size:11px;padding:5px 10px;" data-claim-ch="${ch.id}">Забрать награду</button>`:'')}
+    </div>`;
+  }).join('');
+  box.querySelectorAll('[data-claim-ch]').forEach(btn => btn.addEventListener('click', () => claimChallenge(btn.dataset.claimCh)));
+}
+
+async function claimChallenge(id){
+  const ch = DAILY_CHALLENGES.find(x=>x.id===id);
+  const me = citizens.find(c=>c.id===loggedInCitizenId);
+  if(!ch||!me) return;
+  if((me.challengesDone||[]).includes(id)) return;
+  const up = { challengesDone: arrayUnion(id), challengeDay: todayStr() };
+  if(ch.reward.kumys) up.kumys = increment(ch.reward.kumys);
+  if(ch.reward.xp) up.xp = increment(ch.reward.xp);
+  if(ch.reward.radio) up.radioCoins = increment(ch.reward.radio);
+  try{
+    // save baselines once
+    if(!me.challengeBaselines || me.challengeDay !== todayStr()){
+      const bl = {};
+      DAILY_CHALLENGES.forEach(c => { bl[c.id] = Number(me[c.key])||0; });
+      up.challengeBaselines = bl;
+    }
+    await updateDoc(doc(db,"citizens",me.id), up);
+    me.challengesDone = [...(me.challengesDone||[]), id];
+    if(ch.reward.kumys) me.kumys = (Number(me.kumys)||0)+ch.reward.kumys;
+    showToast('Задание выполнено!');
+    sounds.success();
+    renderChallenges();
+  }catch(e){ showToast('Ошибка'); }
+}
+
+document.getElementById('refreshChallengesBtn')?.addEventListener('click', renderChallenges);
+
+document.getElementById('promoBtn')?.addEventListener('click', async () => {
+  if(!loggedInCitizenId) return showToast('ВОЙДИ');
+  const code = (document.getElementById('promoInput')?.value||'').trim().toUpperCase();
+  const me = citizens.find(c=>c.id===loggedInCitizenId);
+  if(!PROMO_CODES[code]) return showToast('Неверный код');
+  if((me.usedPromos||[]).includes(code)) return showToast('Уже использован');
+  const p = PROMO_CODES[code];
+  const up = { usedPromos: arrayUnion(code) };
+  if(p.kumys) up.kumys = increment(p.kumys);
+  if(p.diamonds) up.diamonds = increment(p.diamonds);
+  if(p.xp) up.xp = increment(p.xp);
+  if(p.radio) up.radioCoins = increment(p.radio);
+  if(p.clump) up.hasOrangeClump = true;
+  try{
+    await updateDoc(doc(db,"citizens",me.id), up);
+    me.usedPromos = [...(me.usedPromos||[]), code];
+    showToast('Промо: '+p.label);
+    sounds.win();
+    document.getElementById('promoInput').value = '';
+  }catch(e){ showToast('Ошибка'); }
+});
+
+// Clicker combo hook — patch after clicker click if possible
+window.__registerClickCombo = function(){
+  const now = Date.now();
+  if(now - lastComboAt < 900) clickCombo = Math.min(10, clickCombo + 1);
+  else clickCombo = 1;
+  lastComboAt = now;
+  return clickCombo;
+};
+window.__getClickComboMul = function(){
+  const c = clickCombo;
+  if(c >= 10) return 10;
+  if(c >= 7) return 5;
+  if(c >= 5) return 3;
+  if(c >= 3) return 2;
+  return 1;
+};
+
+
+
+/* ===================== CLANS ===================== */
+let clansCache = [];
+try{
+  onSnapshot(collection(db, "clans"), (snap) => {
+    clansCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if(document.getElementById('view-clans')?.classList.contains('active')) renderClans();
+  });
+}catch(e){ console.warn('clans', e); }
+
+function renderClans(){
+  const me = citizens.find(c => c.id === loggedInCitizenId);
+  const myBox = document.getElementById('myClanBox');
+  const list = document.getElementById('clansListBox');
+  if(!myBox || !list) return;
+  if(!me){
+    myBox.innerHTML = '<div class="empty-list">Войди в систему</div>';
+    list.innerHTML = '';
+    return;
+  }
+  const myClan = clansCache.find(c => (c.memberIds||[]).includes(me.id));
+  if(myClan){
+    const members = (myClan.memberIds||[]).map(id => {
+      const c = citizens.find(x => x.id === id);
+      return escapeHtml(c?.nickname || c?.name || id);
+    }).join(', ');
+    const isLeader = myClan.leaderId === me.id;
+    myBox.innerHTML = `
+      <div class="order-item">
+        <div style="font-size:18px;font-weight:700;">[${escapeHtml(myClan.tag||'???')}] ${escapeHtml(myClan.name||'')}</div>
+        <div class="id-label">Лидер: ${escapeHtml((citizens.find(c=>c.id===myClan.leaderId)||{}).nickname||'—')}</div>
+        <div class="id-label">Участники (${(myClan.memberIds||[]).length}): ${members}</div>
+        <div style="margin-top:10px;font-size:16px;color:var(--amber);">Казна: ${(Number(myClan.treasury)||0).toLocaleString('ru-RU')} кумыса</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+          <input type="number" id="clanDonateAmt" placeholder="Сумма" min="1" style="width:120px;">
+          <button class="btn" id="clanDonateBtn">В казну</button>
+          ${isLeader?`<button class="btn btn-ghost" id="clanWithdrawBtn">Снять 10% себе</button>`:''}
+          <button class="btn btn-danger" id="clanLeaveBtn">Выйти</button>
+        </div>
+        <div class="form-group" style="margin-top:12px;"><label>Пригласить (ник или id)</label>
+          <div style="display:flex;gap:8px;">
+            <input id="clanInviteInput" placeholder="ник">
+            <button class="btn" id="clanInviteBtn">Пригласить</button>
+          </div>
+        </div>
+        <div id="clanInvitesBox" style="margin-top:10px;"></div>
+      </div>`;
+    document.getElementById('clanDonateBtn')?.addEventListener('click', () => clanDonate(myClan.id));
+    document.getElementById('clanWithdrawBtn')?.addEventListener('click', () => clanWithdraw(myClan.id));
+    document.getElementById('clanLeaveBtn')?.addEventListener('click', () => clanLeave(myClan.id));
+    document.getElementById('clanInviteBtn')?.addEventListener('click', () => clanInvite(myClan.id));
+  } else {
+    myBox.innerHTML = '<div class="empty-list">Ты не в клане. Создай или прими приглашение ниже.</div>';
+  }
+
+  // pending invites for me
+  const invites = (me.clanInvites||[]);
+  if(invites.length && !myClan){
+    myBox.innerHTML += invites.map(inv => {
+      const cl = clansCache.find(c => c.id === inv.clanId);
+      return `<div class="order-item" style="margin-top:8px;">
+        Приглашение в <b>[${escapeHtml(cl?.tag||'?')}] ${escapeHtml(cl?.name||inv.clanId)}</b>
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <button class="btn" data-accept-clan="${inv.clanId}">Вступить</button>
+          <button class="btn btn-ghost" data-decline-clan="${inv.clanId}">Отклонить</button>
+        </div>
+      </div>`;
+    }).join('');
+    myBox.querySelectorAll('[data-accept-clan]').forEach(b => b.addEventListener('click', () => clanAccept(b.dataset.acceptClan)));
+    myBox.querySelectorAll('[data-decline-clan]').forEach(b => b.addEventListener('click', () => clanDecline(b.dataset.declineClan)));
+  }
+
+  list.innerHTML = clansCache.length === 0
+    ? '<div class="empty-list">Кланов пока нет</div>'
+    : clansCache.slice().sort((a,b)=>(Number(b.treasury)||0)-(Number(a.treasury)||0)).map(cl => {
+        return `<div class="citizen-item">
+          <div class="citizen-name">[${escapeHtml(cl.tag||'')}] ${escapeHtml(cl.name||'')}</div>
+          <div class="citizen-rank">${(cl.memberIds||[]).length} уч. · казна ${(Number(cl.treasury)||0).toLocaleString('ru-RU')}</div>
+        </div>`;
+      }).join('');
+}
+
+document.getElementById('clanCreateBtn')?.addEventListener('click', async () => {
+  if(!loggedInCitizenId) return showToast('ВОЙДИ');
+  const me = citizens.find(c => c.id === loggedInCitizenId);
+  if(!me) return;
+  if(clansCache.some(c => (c.memberIds||[]).includes(me.id))) return showToast('Уже в клане');
+  const name = (document.getElementById('clanNameInput')?.value||'').trim();
+  const tag = (document.getElementById('clanTagInput')?.value||'').trim().toUpperCase();
+  if(name.length < 2) return showToast('Имя слишком короткое');
+  if(tag.length < 2 || tag.length > 5) return showToast('Тег 2–5 символов');
+  if((Number(me.kumys)||0) < 50000) return showToast('Нужно 50 000 кумыса');
+  const id = uid('clan');
+  try{
+    await updateDoc(doc(db,"citizens",me.id), { kumys: increment(-50000), clanId: id });
+    await setDoc(doc(db,"clans",id), {
+      id, name, tag, leaderId: me.id, memberIds: [me.id], treasury: 0, createdAt: Date.now()
+    });
+    me.kumys = (Number(me.kumys)||0) - 50000;
+    me.clanId = id;
+    showToast('Клан создан!');
+    sounds.success();
+    document.getElementById('clanNameInput').value = '';
+    document.getElementById('clanTagInput').value = '';
+  }catch(e){ showToast('Ошибка'); console.error(e); }
+});
+
+async function clanDonate(clanId){
+  const me = citizens.find(c => c.id === loggedInCitizenId);
+  const amt = Math.floor(Number(document.getElementById('clanDonateAmt')?.value)||0);
+  if(!me || amt < 1) return showToast('Сумма?');
+  if((Number(me.kumys)||0) < amt) return showToast('Не хватает кумыса');
+  try{
+    await updateDoc(doc(db,"citizens",me.id), { kumys: increment(-amt) });
+    await updateDoc(doc(db,"clans",clanId), { treasury: increment(amt) });
+    me.kumys = (Number(me.kumys)||0) - amt;
+    showToast('В казну: '+amt);
+    sounds.coin();
+  }catch(e){ showToast('Ошибка'); }
+}
+async function clanWithdraw(clanId){
+  const me = citizens.find(c => c.id === loggedInCitizenId);
+  const cl = clansCache.find(c => c.id === clanId);
+  if(!me || !cl || cl.leaderId !== me.id) return showToast('Только лидер');
+  const amt = Math.floor((Number(cl.treasury)||0) * 0.1);
+  if(amt < 1) return showToast('Казна пуста');
+  try{
+    await updateDoc(doc(db,"clans",clanId), { treasury: increment(-amt) });
+    await updateDoc(doc(db,"citizens",me.id), { kumys: increment(amt) });
+    me.kumys = (Number(me.kumys)||0) + amt;
+    showToast('Снято 10%: '+amt);
+    sounds.coin();
+  }catch(e){ showToast('Ошибка'); }
+}
+async function clanLeave(clanId){
+  if(!confirm('Выйти из клана?')) return;
+  const me = citizens.find(c => c.id === loggedInCitizenId);
+  const cl = clansCache.find(c => c.id === clanId);
+  if(!me || !cl) return;
+  try{
+    const members = (cl.memberIds||[]).filter(id => id !== me.id);
+    if(cl.leaderId === me.id && members.length){
+      await updateDoc(doc(db,"clans",clanId), { memberIds: members, leaderId: members[0] });
+    } else if(members.length === 0){
+      await deleteDoc(doc(db,"clans",clanId));
+    } else {
+      await updateDoc(doc(db,"clans",clanId), { memberIds: members });
+    }
+    await updateDoc(doc(db,"citizens",me.id), { clanId: '' });
+    me.clanId = '';
+    showToast('Ты вышел из клана');
+    renderClans();
+  }catch(e){ showToast('Ошибка'); }
+}
+async function clanInvite(clanId){
+  const q = (document.getElementById('clanInviteInput')?.value||'').trim().toLowerCase();
+  const target = citizens.find(c => c.id === q || (c.nickname||'').toLowerCase()===q || (c.name||'').toLowerCase()===q);
+  if(!target) return showToast('Игрок не найден');
+  if((target.clanId) || clansCache.some(c => (c.memberIds||[]).includes(target.id))) return showToast('Уже в клане');
+  try{
+    const inv = { clanId, at: Date.now() };
+    await updateDoc(doc(db,"citizens",target.id), { clanInvites: arrayUnion(inv) });
+    showToast('Приглашение отправлено');
+    sounds.send();
+  }catch(e){
+    // arrayUnion with objects can be tricky - fallback merge
+    try{
+      const invites = [...(target.clanInvites||[]), { clanId, at: Date.now() }];
+      await updateDoc(doc(db,"citizens",target.id), { clanInvites: invites });
+      showToast('Приглашение отправлено');
+    }catch(e2){ showToast('Ошибка приглашения'); }
+  }
+}
+async function clanAccept(clanId){
+  const me = citizens.find(c => c.id === loggedInCitizenId);
+  if(!me) return;
+  try{
+    const cl = clansCache.find(c => c.id === clanId);
+    if(!cl) return showToast('Клан не найден');
+    const members = Array.from(new Set([...(cl.memberIds||[]), me.id]));
+    await updateDoc(doc(db,"clans",clanId), { memberIds: members });
+    const invites = (me.clanInvites||[]).filter(i => i.clanId !== clanId);
+    await updateDoc(doc(db,"citizens",me.id), { clanId, clanInvites: invites });
+    me.clanId = clanId;
+    me.clanInvites = invites;
+    showToast('Ты в клане!');
+    sounds.success();
+    renderClans();
+  }catch(e){ showToast('Ошибка'); console.error(e); }
+}
+async function clanDecline(clanId){
+  const me = citizens.find(c => c.id === loggedInCitizenId);
+  if(!me) return;
+  const invites = (me.clanInvites||[]).filter(i => i.clanId !== clanId);
+  try{
+    await updateDoc(doc(db,"citizens",me.id), { clanInvites: invites });
+    me.clanInvites = invites;
+    renderClans();
+  }catch(e){}
+}
+
+/* ===================== EXTRA FUN: lucky rain + mystery box ===================== */
+document.addEventListener('keydown', (e) => {
+  if(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'g'){
+    showToast('🐱 Секрет Гидрокота: +67 XP');
+    if(loggedInCitizenId){
+      const me = citizens.find(c=>c.id===loggedInCitizenId);
+      if(me){ me.xp = (Number(me.xp)||0)+67; try{ bufferIncXp(67); }catch(err){} }
+    }
+  }
+});
+
+
 let lastMsgNotifyId=null;
 setInterval(()=>{
   if(!loggedInCitizenId||!messages.length)return;
@@ -9449,7 +10105,7 @@ async function sendChatMessage(){
   const text = document.getElementById('chatTextInput').value.trim();
   if(!text && !pendingChatFile){ return; }
   // GidryaAi special path
-  if(typeof currentChatId !== 'undefined' && currentChatId === 'chat_gidrya_ai'){
+  if(typeof currentChatId !== 'undefined' && currentChatId === getAiChatId()){
     if(typeof _chatSendHandler === 'function'){
       await _chatSendHandler();
       return;
