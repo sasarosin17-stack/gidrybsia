@@ -1480,6 +1480,8 @@
     <div class="form-group"><label>Системное имя</label><input id="gate_name" autocomplete="off"></div>
     <div class="form-group"><label>Системный пароль</label><input id="gate_pass" type="password" autocomplete="off"></div>
     <button class="btn btn-full" id="gateLoginBtn">Войти</button>
+    <button class="btn btn-ghost btn-full" id="gateRegisterBtn" style="margin-top:8px;">Создать жителя (регистрация)</button>
+    <div class="id-label" id="gateDbStatus" style="margin-top:10px;text-align:center;">База: подключение...</div>
     <div class="gate-admin-link" id="gateAdminLink">Я администратор</div>
   </div>
 </div>
@@ -2628,13 +2630,15 @@ const firebaseConfig = {
   measurementId: "G-K286N7WSB7"
 };
 
-let fbApp, analytics, db;
+let fbApp, analytics, db, firebaseReady=false, firebaseError=null;
 try{
   fbApp = initializeApp(firebaseConfig);
   try{ analytics = getAnalytics(fbApp); }catch(e){ console.warn("analytics", e); }
   db = getFirestore(fbApp);
+  firebaseReady = true;
   console.log("[GIDRYA] Firestore OK, project:", firebaseConfig.projectId);
 }catch(e){
+  firebaseError = e;
   console.error("[GIDRYA] Firebase init failed", e);
   setTimeout(() => { try{ showToast("НЕТ СВЯЗИ С БАЗОЙ: "+(e.message||e)); }catch(_){ alert("Нет связи с Firebase"); } }, 800);
 }
@@ -2746,7 +2750,16 @@ function debounce(fn, ms){
     t = setTimeout(() => fn.apply(this, args), ms);
   };
 }
-const citizensCol = collection(db, "citizens");
+const citizensCol = db ? collection(db, "citizens") : null;
+// watchdog: если snapshot не пришёл за 8с
+setTimeout(()=>{
+  if(!citizensLoaded){
+    citizensLoaded = true;
+    const st=document.getElementById('gateDbStatus');
+    if(st) st.textContent = 'База: нет ответа (проверь Rules / интернет)';
+    try{ showToast('БАЗА НЕ ОТВЕЧАЕТ — проверь Firestore Rules'); }catch(e){}
+  }
+}, 8000);
 const itemsCol = collection(db, "auctionItems");
 const reviewsCol = collection(db, "reviews");
 const ordersCol = collection(db, "orders");
@@ -3476,12 +3489,13 @@ document.getElementById('gateAdminLink').addEventListener('click', () => {
   setTimeout(()=> pwInput.focus(), 50);
 });
 
-document.getElementById('gateLoginBtn').addEventListener('click', () => {
+document.getElementById('gateLoginBtn').addEventListener('click', async () => {
   const name = document.getElementById('gate_name').value.trim();
-  const pass = document.getElementById('gate_pass').value.trim();
-  if(!name || !pass){ showToast('ЗАПОЛНИ ОБА ПОЛЯ'); return; }
+  const pass = document.getElementById('gate_pass').value;
+  if(!name || !pass){ showToast('ЗАПОЛНИ ИМЯ И ПАРОЛЬ'); return; }
+  if(!firebaseReady || !db){ showToast('НЕТ СВЯЗИ С FIREBASE'); return; }
 
-  if(name.toLowerCase() === 'admin123' && pass === ADMIN_PASSWORD){
+  if(name.toLowerCase() === 'admin' && pass === ADMIN_PASSWORD){
     isAdmin = true;
     updateAdminUI();
     dismissGate();
@@ -3490,11 +3504,13 @@ document.getElementById('gateLoginBtn').addEventListener('click', () => {
     return;
   }
 
-  if(!citizensLoaded){ showToast('ИДЁТ ЗАГРУЗКА, ПОДОЖДИ СЕКУНДУ'); return; }
-  const match = citizens.find(c =>
-    (c.systemName || '').toLowerCase() === name.toLowerCase() &&
-    (c.systemPassword || '') === pass && c.systemName
-  );
+  if(!citizensLoaded){ showToast('ИДЁТ ЗАГРУЗКА БАЗЫ, ПОДОЖДИ 2 СЕК'); return; }
+  // login: systemName+password OR name+password
+  const match = citizens.find(c => {
+    const sn = (c.systemName || c.name || '').toLowerCase();
+    const pw = (c.systemPassword || c.password || '');
+    return sn === name.toLowerCase() && pw === pass && sn;
+  });
   if(match){
     if(match.banned){
       sounds.error();
@@ -3510,9 +3526,45 @@ document.getElementById('gateLoginBtn').addEventListener('click', () => {
     showToast('ДОБРО ПОЖАЛОВАТЬ, ' + (match.name || '').toUpperCase());
   } else {
     sounds.error();
-    showToast('НЕВЕРНОЕ ИМЯ ИЛИ ПАРОЛЬ');
+    const hint = citizens.length===0 ? ' (база пустая — нажми «Создать жителя»)' : '';
+    showToast('НЕВЕРНОЕ ИМЯ ИЛИ ПАРОЛЬ'+hint);
   }
 });
+
+document.getElementById('gateRegisterBtn')?.addEventListener('click', async () => {
+  const name = document.getElementById('gate_name').value.trim();
+  const pass = document.getElementById('gate_pass').value;
+  if(!name || !pass){ showToast('ВВЕДИ ИМЯ И ПАРОЛЬ ДЛЯ РЕГИСТРАЦИИ'); return; }
+  if(pass.length < 3){ showToast('ПАРОЛЬ СЛИШКОМ КОРОТКИЙ'); return; }
+  if(!firebaseReady || !db){ showToast('НЕТ СВЯЗИ С FIREBASE'); return; }
+  if(!citizensLoaded){ showToast('БАЗА ЕЩЁ ГРУЗИТСЯ'); return; }
+  if(citizens.some(c => (c.systemName||c.name||'').toLowerCase()===name.toLowerCase())){
+    showToast('ТАКОЕ ИМЯ УЖЕ ЕСТЬ'); return;
+  }
+  const id = 'c_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+  const c = {
+    id, name, systemName: name, systemPassword: pass,
+    nickname: name, rank: 'Новичок', bio: '',
+    kumys: 1000, diamonds: 0, radioCoins: 0, xp: 0,
+    balance: 0, createdAt: Date.now(), banned: false
+  };
+  try{
+    await setDoc(doc(db, "citizens", id), c);
+    loggedInCitizenId = id;
+    dismissGate();
+    if(cookiesEnabled) setCookie('gid_session', JSON.stringify({type:'citizen', id}), 30);
+    touchPresence();
+    updateSecretTabs();
+    sounds.success();
+    showToast('АККАУНТ СОЗДАН: '+name.toUpperCase());
+  }catch(e){
+    console.error(e);
+    sounds.error();
+    const msg = (e && e.code) ? e.code : (e.message||'ошибка');
+    showToast('НЕ УДАЛОСЬ ЗАПИСАТЬ В БАЗУ: '+msg);
+  }
+});
+
 document.getElementById('gate_pass').addEventListener('keydown', (e) => {
   if(e.key === 'Enter') document.getElementById('gateLoginBtn').click();
 });
@@ -3544,6 +3596,21 @@ function tryRestoreSession(){
     }
   }catch(e){ clearCookie('gid_session'); }
 }
+
+// Firestore permission / network errors on citizens
+if(citizensCol){
+  // re-subscribe with error handler once
+  try{
+    onSnapshot(citizensCol, ()=>{}, (err)=>{
+      console.error("[GIDRYA] citizens snapshot error", err);
+      citizensLoaded = true;
+      const st=document.getElementById('gateDbStatus');
+      if(st) st.textContent = 'База: ошибка '+ (err.code||err.message||'');
+      showToast('ОШИБКА БАЗЫ: '+(err.code||err.message||'нет доступа'));
+    });
+  }catch(e){}
+}
+
 function updateAdminUI(){
   adminPill.textContent = isAdmin ? 'Админ ✓ (выйти)' : 'Войти как админ';
   adminPill.classList.toggle('on', isAdmin);
@@ -3567,9 +3634,11 @@ const debouncedCitizenUI = debounce(() => {
   if(document.getElementById('view-me')?.classList.contains('active')) renderMeTab();
   if(document.getElementById('view-richest')?.classList.contains('active') && typeof renderRichest === 'function') renderRichest();
 }, 150);
-onSnapshot(citizensCol, (snap) => {
+if(citizensCol) onSnapshot(citizensCol, (snap) => {
   citizens = snap.docs.map(d => ({ ...d.data(), id: d.data().id || d.id }));
   citizensLoaded = true;
+  const st=document.getElementById('gateDbStatus');
+  if(st) st.textContent = 'База: онлайн · жителей '+citizens.length;
   tryRestoreSession();
   if(loggedInCitizenId){
     const meNow = citizens.find(c => c.id === loggedInCitizenId);
@@ -3589,7 +3658,7 @@ onSnapshot(citizensCol, (snap) => {
     selectedId = null;
     renderDossierEmpty();
   }
-}, (err) => { showToast('ОШИБКА ЗАГРУЗКИ БАЗЫ'); console.error(err); });
+}, (err) => { citizensLoaded=true; const st=document.getElementById('gateDbStatus'); if(st) st.textContent='База: ошибка '+(err.code||''); showToast('ОШИБКА БАЗЫ: '+(err.code||err.message||'')); console.error(err); });
 
 async function saveCitizen(c){
   try{ await setDoc(doc(db, "citizens", c.id), c); }
