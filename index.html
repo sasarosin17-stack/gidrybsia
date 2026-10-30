@@ -1058,7 +1058,27 @@
   .avatar-border-ear20{ color:#ff6bcb; box-shadow:0 0 0 3px #ff6bcb, 0 0 18px #ff9eda, 0 0 0 6px rgba(255,107,203,0.25); }
 
   /* ===== CUTE EFFECTS ===== */
-      .effect-ef_y1{ color:#ff4d6d; text-shadow:0 0 10px #ff4d6d; font-weight:700; }
+        .effect-ef_oct1{ color:#ff6b9d; text-shadow:0 0 8px #ff6b9d; font-weight:700; }
+  .effect-ef_oct2{ color:#a78bfa; text-shadow:0 0 8px #a78bfa; font-weight:700; }
+  .effect-ef_oct3{ color:#38bdf8; text-shadow:0 0 8px #38bdf8; font-weight:700; }
+  .effect-ef_oct4{ color:#4ade80; text-shadow:0 0 8px #4ade80; font-weight:700; }
+  .effect-ef_oct5{ color:#fbbf24; text-shadow:0 0 8px #fbbf24; font-weight:700; }
+  .effect-ef_oct6{ color:#f87171; text-shadow:0 0 8px #f87171; font-weight:700; }
+  .effect-ef_oct7{ color:#e879f9; text-shadow:0 0 8px #e879f9; font-weight:700; }
+  .effect-ef_oct8{ color:#2dd4bf; text-shadow:0 0 8px #2dd4bf; font-weight:700; }
+  .effect-ef_oct9{ color:#fb923c; text-shadow:0 0 8px #fb923c; font-weight:700; }
+  .effect-ef_oct10{ color:#94a3b8; text-shadow:0 0 8px #94a3b8; font-weight:700; }
+  .effect-ef_oct11{ color:#fcd34d; text-shadow:0 0 8px #fcd34d; font-weight:700; }
+  .effect-ef_oct12{ color:#60a5fa; text-shadow:0 0 8px #60a5fa; font-weight:700; }
+  .effect-ef_oct13{ color:#c084fc; text-shadow:0 0 8px #c084fc; font-weight:700; }
+  .effect-ef_oct14{ color:#34d399; text-shadow:0 0 8px #34d399; font-weight:700; }
+  .effect-ef_oct15{ color:#f472b6; text-shadow:0 0 8px #f472b6; font-weight:700; }
+  .effect-ef_oct16{ color:#22d3ee; text-shadow:0 0 8px #22d3ee; font-weight:700; }
+  .effect-ef_oct17{ color:#a3e635; text-shadow:0 0 8px #a3e635; font-weight:700; }
+  .effect-ef_oct18{ color:#eab308; text-shadow:0 0 8px #eab308; font-weight:700; }
+  .effect-ef_oct19{ color:#818cf8; text-shadow:0 0 8px #818cf8; font-weight:700; }
+  .effect-ef_oct20{ color:#f43f5e; text-shadow:0 0 8px #f43f5e; font-weight:700; }
+  .effect-ef_y1{ color:#ff4d6d; text-shadow:0 0 10px #ff4d6d; font-weight:700; }
   .effect-ef_y2{ color:#2dd4bf; text-shadow:0 0 10px #2dd4bf; font-weight:700; }
   .effect-ef_y3{ color:#fbbf24; text-shadow:0 0 10px #fbbf24; font-weight:700; }
   .effect-ef_y4{ color:#3b82f6; text-shadow:0 0 10px #3b82f6; font-weight:700; }
@@ -1459,6 +1479,8 @@
     <button class="tab-btn" data-view="achievements">Ачивки</button>
     <button class="tab-btn" data-view="battlepass">Боевой пропуск</button>
     <button class="tab-btn" data-view="funzone">Фишки ✨</button>
+    <button class="tab-btn" data-view="contracts">Контракты</button>
+    <button class="tab-btn" data-view="shops">Магазины</button>
     <button class="tab-btn" data-view="clans">Кланы</button>
     <button class="tab-btn" data-view="pets">Питомцы</button>
     <button class="tab-btn" data-view="clicker">Кликер</button>
@@ -1740,6 +1762,28 @@
       <div class="divider"></div>
       <div class="panel-title"><span>Все кланы</span></div>
       <div id="clansListBox"></div>
+    </div>
+  </div>
+
+  
+  <div class="view" id="view-contracts">
+    <div class="panel">
+      <div class="panel-title"><span>Контракты</span></div>
+      <div class="id-label" style="margin-bottom:10px;">Все контракты, которые ты создал или подписал.</div>
+      <div id="contractsListBox"></div>
+    </div>
+  </div>
+  <div class="view" id="view-shops">
+    <div class="panel">
+      <div class="panel-title"><span>Магазины</span>
+        <button class="btn" id="createShopBtn" style="font-size:11px;padding:6px 10px;">+ Создать магазин</button>
+      </div>
+      <div class="id-label" style="margin-bottom:10px;">Электронные и реальные магазины. Новые — после модерации.</div>
+      <div id="shopsListBox"></div>
+    </div>
+    <div class="panel" id="myShopPanel" style="margin-top:14px;display:none;">
+      <div class="panel-title"><span>Мой магазин</span></div>
+      <div id="myShopBox"></div>
     </div>
   </div>
 
@@ -2070,6 +2114,16 @@
         <button class="btn btn-ghost" data-mg="invaders" style="font-size:11px; padding:7px 10px;">Вторжение</button>
         <button class="btn btn-ghost" data-mg="catch" style="font-size:11px; padding:7px 10px;">Ловилка</button>
         <button class="btn btn-ghost" data-mg="dice" style="font-size:11px; padding:7px 10px;">Кости</button>
+        <button class="btn btn-ghost" data-mg="rps" style="font-size:11px; padding:7px 10px;">КНБ</button>
+        <button class="btn btn-ghost" data-mg="guess" style="font-size:11px; padding:7px 10px;">Угадай</button>
+        <button class="btn btn-ghost" data-mg="clickrace" style="font-size:11px; padding:7px 10px;">Гонка</button>
+        <button class="btn btn-ghost" data-mg="memory2" style="font-size:11px; padding:7px 10px;">Пары+</button>
+        <button class="btn btn-ghost" data-mg="math" style="font-size:11px; padding:7px 10px;">Матем</button>
+        <button class="btn btn-ghost" data-mg="slots" style="font-size:11px; padding:7px 10px;">Слоты</button>
+        <button class="btn btn-ghost" data-mg="dodge" style="font-size:11px; padding:7px 10px;">Уклон</button>
+        <button class="btn btn-ghost" data-mg="tap" style="font-size:11px; padding:7px 10px;">Тап</button>
+        <button class="btn btn-ghost" data-mg="color" style="font-size:11px; padding:7px 10px;">Цвет</button>
+        <button class="btn btn-ghost" data-mg="word" style="font-size:11px; padding:7px 10px;">Слово</button>
       </div>
 
       <div class="mg-panel" id="mgTanksBox">
@@ -2214,6 +2268,8 @@
   <button data-view="mutations">Мутации</button>
   <button data-view="xpmarket">Опыт</button>
   <button data-view="funzone">Фишки</button>
+  <button data-view="contracts">Контракты</button>
+  <button data-view="shops">Магазины</button>
   <button data-view="clans">Кланы</button>
   <button data-view="battlepass">Пропуск</button>
   <button data-view="achievements">Ачивки</button>
@@ -2225,6 +2281,55 @@
   <button data-view="event" id="tabEventMobile" style="display:none; color:var(--amber);">Ивент</button>
   <button data-view="me">Я</button>
   <button data-view="adminpanel" id="mobileAdminTab" style="display:none;">Админ</button>
+</div>
+
+
+<div class="modal-overlay" id="contractModal">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="modal-close" data-close-modal>&#10005;</div>
+    <h3>Новый контракт</h3>
+    <div class="form-group"><label>Текст контракта</label><textarea id="ctrText" rows="4" placeholder="Условия..."></textarea></div>
+    <div class="form-group"><label>Плата за подпись (кумыс, 0 = бесплатно)</label><input id="ctrFee" type="number" min="0" value="0"></div>
+    <div class="form-group" style="display:flex;align-items:center;gap:8px;">
+      <input type="checkbox" id="ctrAgree"> <label for="ctrAgree" style="margin:0;">Я подтверждаю условия и отправляю на подпись</label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="ctrSendBtn" disabled>OK — отправить</button>
+      <button class="btn btn-ghost" data-close-modal>Отмена</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="shopModal">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="modal-close" data-close-modal>&#10005;</div>
+    <h3>Создать магазин</h3>
+    <div class="form-group"><label>Название</label><input id="shopName" maxlength="40"></div>
+    <div class="form-group"><label>Чем торгуешь</label><input id="shopTrade" maxlength="60" placeholder="еда, услуги, вещи..."></div>
+    <div class="form-group"><label>Описание</label><textarea id="shopDesc" rows="3"></textarea></div>
+    <div class="form-group"><label>Обложка (URL или из базы фото)</label><input id="shopCover" placeholder="https://..."></div>
+    <div class="form-group"><label>Тип</label>
+      <select id="shopType"><option value="electronic">Электронный</option><option value="real">Реальный</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="shopSubmitBtn">На модерацию</button>
+      <button class="btn btn-ghost" data-close-modal>Отмена</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="shopItemModal">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="modal-close" data-close-modal>&#10005;</div>
+    <h3>Товар в магазин</h3>
+    <div class="form-group"><label>Название</label><input id="siName"></div>
+    <div class="form-group"><label>Описание</label><textarea id="siDesc" rows="2"></textarea></div>
+    <div class="form-group"><label>Цена (кумыс)</label><input id="siPrice" type="number" min="1" value="100"></div>
+    <div class="form-group"><label>Количество</label><input id="siQty" type="number" min="1" value="1"></div>
+    <div class="form-group"><label>Обложка URL</label><input id="siCover"></div>
+    <div class="modal-actions">
+      <button class="btn" id="siSubmitBtn">Добавить</button>
+      <button class="btn btn-ghost" data-close-modal>Отмена</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -2472,20 +2577,27 @@ import {
   query, orderBy, limit as fsLimit
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
-// СТАРЫЙ сервер (откат с gidryanew)
+// Firebase — проект gidribsiya
 const firebaseConfig = {
-  apiKey: "AIzaSyAuPAAGR26OM_E3KnYpJpyS2L7eEss-Isw",
-  authDomain: "web-app-77068.firebaseapp.com",
-  projectId: "web-app-77068",
-  storageBucket: "web-app-77068.firebasestorage.app",
-  messagingSenderId: "754005710485",
-  appId: "1:754005710485:web:95162caf2d30ea9b76ed9c",
-  measurementId: "G-B7189ZPMGF"
+  apiKey: "AIzaSyCgTIY60DivCOVMFokZFjILdCtSrbgGUTQ",
+  authDomain: "gidribsiya.firebaseapp.com",
+  projectId: "gidribsiya",
+  storageBucket: "gidribsiya.firebasestorage.app",
+  messagingSenderId: "687018879666",
+  appId: "1:687018879666:web:a5977e90225c97abe5f7ab",
+  measurementId: "G-K286N7WSB7"
 };
 
-const fbApp = initializeApp(firebaseConfig);
-const analytics = getAnalytics(fbApp);
-const db = getFirestore(fbApp);
+let fbApp, analytics, db;
+try{
+  fbApp = initializeApp(firebaseConfig);
+  try{ analytics = getAnalytics(fbApp); }catch(e){ console.warn("analytics", e); }
+  db = getFirestore(fbApp);
+  console.log("[GIDRYA] Firestore OK, project:", firebaseConfig.projectId);
+}catch(e){
+  console.error("[GIDRYA] Firebase init failed", e);
+  setTimeout(() => { try{ showToast("НЕТ СВЯЗИ С БАЗОЙ: "+(e.message||e)); }catch(_){ alert("Нет связи с Firebase"); } }, 800);
+}
 
 /* ===================== WRITE BATCHER (оптимизация квоты) =====================
    Частые +1/−1 копятся локально и уходят ОДНИМ updateDoc:
@@ -2842,6 +2954,26 @@ const EFFECTS_CATALOG = [
   { id: 'ef_y28', name: 'Топаз-сдвиг', price: 201103, currency: 'kumys' },
   { id: 'ef_y29', name: 'Обсидиан-эхо', price: 203230, currency: 'kumys' },
   { id: 'ef_y30', name: 'Кварц-взрыв', price: 205369, currency: 'kumys' },
+  { id: 'ef_oct1', name: 'Аврора', price: 5900, currency: 'kumys' },
+  { id: 'ef_oct2', name: 'Небула', price: 6961, currency: 'kumys' },
+  { id: 'ef_oct3', name: 'Кварц', price: 8215, currency: 'kumys' },
+  { id: 'ef_oct4', name: 'Эфир', price: 9693, currency: 'kumys' },
+  { id: 'ef_oct5', name: 'Вольфрам', price: 11438, currency: 'kumys' },
+  { id: 'ef_oct6', name: 'Ионит', price: 13497, currency: 'kumys' },
+  { id: 'ef_oct7', name: 'Сераф', price: 15927, currency: 'kumys' },
+  { id: 'ef_oct8', name: 'Глиф', price: 18794, currency: 'kumys' },
+  { id: 'ef_oct9', name: 'Рунный', price: 22177, currency: 'kumys' },
+  { id: 'ef_oct10', name: 'Оникс', price: 26169, currency: 'kumys' },
+  { id: 'ef_oct11', name: 'Топаз', price: 30879, currency: 'kumys' },
+  { id: 'ef_oct12', name: 'Хронос', price: 36437, currency: 'kumys' },
+  { id: 'ef_oct13', name: 'Вега', price: 42996, currency: 'kumys' },
+  { id: 'ef_oct14', name: 'Сириус', price: 50736, currency: 'kumys' },
+  { id: 'ef_oct15', name: 'Пульсар', price: 59868, currency: 'kumys' },
+  { id: 'ef_oct16', name: 'Квазар', price: 70645, currency: 'kumys' },
+  { id: 'ef_oct17', name: 'Арк', price: 83361, currency: 'kumys' },
+  { id: 'ef_oct18', name: 'Нова', price: 98366, currency: 'kumys' },
+  { id: 'ef_oct19', name: 'Зенит', price: 116072, currency: 'kumys' },
+  { id: 'ef_oct20', name: 'Апекс', price: 136965, currency: 'kumys' },
 ];
 
 const BLACK_MARKET_ITEMS = [
@@ -3177,6 +3309,8 @@ function switchView(name){
   if(name === 'achievements'){ renderAchievements(); }
   if(name === 'battlepass'){ renderBattlePass(); }
   if(name === 'funzone'){ renderFunZone(); }
+  if(name === 'contracts'){ renderContracts(); }
+  if(name === 'shops'){ renderShops(); }
   if(name === 'clans'){ renderClans(); }
   if(name === 'pets'){ renderPets(); }
   if(name === 'adminpanel'){ if(!isAdmin){ showToast('НЕТ ДОСТУПА'); switchView('passports'); return; } renderAdminPanel(); }
@@ -6422,6 +6556,26 @@ const ANOMALIES = [
   { id: 'a158', name: 'Нулевой день+', emoji: '📅', hp: 168457679,   dmg: 6156,   reward: 206769239128 },
   { id: 'a159', name: 'Сегфолт-зверь+', emoji: '💥', hp: 178565140,   dmg: 6372,   reward: 215040008693 },
   { id: 'a160', name: 'Ядро-паника+', emoji: '🧠', hp: 189279048,   dmg: 6595,   reward: 223641609041 },
+  { id: 'a161', name: 'Шифр-тень', emoji: '👾', hp: 198743000, dmg: 6793, reward: 76783619104 },
+  { id: 'a162', name: 'Пакет-жнец', emoji: '👾', hp: 208680150, dmg: 6998, reward: 79087127677 },
+  { id: 'a163', name: 'Хеш-змей', emoji: '👾', hp: 219114157, dmg: 7209, reward: 81459741507 },
+  { id: 'a164', name: 'Нода-страж', emoji: '👾', hp: 230069865, dmg: 7426, reward: 83903533752 },
+  { id: 'a165', name: 'Валидатор-гнев', emoji: '👾', hp: 241573359, dmg: 7650, reward: 86420639765 },
+  { id: 'a166', name: 'Шард-зверь', emoji: '👾', hp: 253652027, dmg: 7880, reward: 89013258958 },
+  { id: 'a167', name: 'Оракул-бездна', emoji: '👾', hp: 266334628, dmg: 8118, reward: 91683656727 },
+  { id: 'a168', name: 'Мост-кошмар', emoji: '👾', hp: 279651359, dmg: 8362, reward: 94434166428 },
+  { id: 'a169', name: 'Реле-титан', emoji: '👾', hp: 293633927, dmg: 8613, reward: 97267191421 },
+  { id: 'a170', name: 'Эпоха-гидра', emoji: '👾', hp: 308315624, dmg: 8873, reward: 100185207164 },
+  { id: 'a171', name: 'Финалити-яд', emoji: '👾', hp: 323731405, dmg: 9140, reward: 103190763379 },
+  { id: 'a172', name: 'Пул-шторм', emoji: '👾', hp: 339917975, dmg: 9414, reward: 106286486280 },
+  { id: 'a173', name: 'ASIC-бог', emoji: '👾', hp: 356913874, dmg: 9697, reward: 109475080869 },
+  { id: 'a174', name: 'Сид-рок', emoji: '👾', hp: 374759568, dmg: 9989, reward: 112759333295 },
+  { id: 'a175', name: 'Фишинг-дух', emoji: '👾', hp: 393497546, dmg: 10289, reward: 116142113294 },
+  { id: 'a176', name: 'Рагпулл-король', emoji: '👾', hp: 413172423, dmg: 10599, reward: 119626376692 },
+  { id: 'a177', name: 'Слаш-фантом', emoji: '👾', hp: 433831045, dmg: 10917, reward: 123215167993 },
+  { id: 'a178', name: 'Мемпул-дракон', emoji: '👾', hp: 455522597, dmg: 11245, reward: 126911623033 },
+  { id: 'a179', name: 'Стейк-колосс', emoji: '👾', hp: 478298727, dmg: 11583, reward: 130718971724 },
+  { id: 'a180', name: 'Форк-император', emoji: '👾', hp: 502213663, dmg: 11931, reward: 134640540876 },
 ];
 ANOMALIES[16].emoji = '💀';
 
@@ -10032,6 +10186,230 @@ document.addEventListener('keydown', (e) => {
 });
 
 
+
+/* ===================== CONTRACTS ===================== */
+let contractsCache = [];
+try{
+  onSnapshot(collection(db,"contracts"), snap=>{
+    contractsCache = snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(document.getElementById('view-contracts')?.classList.contains('active')) renderContracts();
+    if(currentChatId) renderChatMessages();
+  });
+}catch(e){ console.warn("contracts",e); }
+
+document.getElementById('ctrAgree')?.addEventListener('change', (e)=>{
+  const btn=document.getElementById('ctrSendBtn');
+  if(btn) btn.disabled = !e.target.checked;
+});
+document.querySelectorAll('[data-close-modal]').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    document.querySelectorAll('.modal-overlay.show').forEach(m=>m.classList.remove('show'));
+  });
+});
+
+function openContractModal(){
+  if(!loggedInCitizenId || !currentChatPeer) return showToast('Только в личке');
+  document.getElementById('ctrText').value='';
+  document.getElementById('ctrFee').value='0';
+  document.getElementById('ctrAgree').checked=false;
+  document.getElementById('ctrSendBtn').disabled=true;
+  document.getElementById('contractModal').classList.add('show');
+}
+// bind after header render
+const _oldRenderChatHeader = typeof renderChatHeader==='function' ? null : null;
+document.addEventListener('click',(e)=>{
+  if(e.target && e.target.id==='sendContractBtn') openContractModal();
+});
+
+document.getElementById('ctrSendBtn')?.addEventListener('click', async ()=>{
+  if(!loggedInCitizenId || !currentChatPeer) return;
+  const text=(document.getElementById('ctrText').value||'').trim();
+  if(text.length<3) return showToast('Напиши текст');
+  if(!document.getElementById('ctrAgree').checked) return showToast('Поставь галочку');
+  const fee=Math.max(0, Math.floor(Number(document.getElementById('ctrFee').value)||0));
+  const id=uid('ctr');
+  const me=citizens.find(c=>c.id===loggedInCitizenId);
+  try{
+    await setDoc(doc(db,"contracts",id),{
+      id, text, fee, status:'pending',
+      authorId: me.id, authorName: me.nickname||me.name,
+      targetId: currentChatPeer.id, targetName: currentChatPeer.nickname||currentChatPeer.name,
+      createdAt: Date.now(), signedAt: null
+    });
+    // message in chat
+    const mid=uid('msg');
+    await setDoc(doc(db,"messages",mid),{
+      id:mid, chatId: currentChatId, senderId: me.id,
+      senderName: me.nickname||me.name,
+      text: '📜 Контракт на подпись'+(fee?` (${fee} кумыса)`:'')+':\n'+text,
+      contractId: id, createdAt: Date.now()
+    });
+    document.getElementById('contractModal').classList.remove('show');
+    showToast('Контракт отправлен');
+    sounds.send();
+  }catch(e){ showToast('Ошибка'); console.error(e); }
+});
+
+function renderContracts(){
+  const box=document.getElementById('contractsListBox');
+  if(!box) return;
+  if(!loggedInCitizenId){ box.innerHTML='<div class="empty-list">Войди</div>'; return; }
+  const list=contractsCache.filter(c=>c.authorId===loggedInCitizenId||c.targetId===loggedInCitizenId)
+    .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  if(!list.length){ box.innerHTML='<div class="empty-list">Контрактов нет</div>'; return; }
+  box.innerHTML=list.map(c=>{
+    const role=c.authorId===loggedInCitizenId?'автор':'подписант';
+    const st=c.status==='signed'?'✓ подписан':(c.status==='rejected'?'✗ отказ':'⏳ ожидает');
+    let actions='';
+    if(c.status==='pending' && c.targetId===loggedInCitizenId){
+      actions=`<div style="display:flex;gap:6px;margin-top:8px;">
+        <button class="btn" data-sign="${c.id}" style="font-size:11px;padding:6px 10px;">Подписать</button>
+        <button class="btn btn-ghost" data-reject="${c.id}" style="font-size:11px;padding:6px 10px;">Отказаться</button>
+      </div>`;
+    }
+    return `<div class="order-item" style="margin-bottom:10px;">
+      <div style="font-size:12px;color:var(--text-dim);">${st} · ты ${role} · ${escapeHtml(c.authorName)} → ${escapeHtml(c.targetName)}</div>
+      <div style="margin-top:6px;white-space:pre-wrap;">${escapeHtml(c.text||'')}</div>
+      <div class="id-label" style="margin-top:4px;">Плата: ${Number(c.fee)||0} кумыса</div>
+      ${actions}
+    </div>`;
+  }).join('');
+  box.querySelectorAll('[data-sign]').forEach(b=>b.addEventListener('click',()=>signContract(b.dataset.sign)));
+  box.querySelectorAll('[data-reject]').forEach(b=>b.addEventListener('click',()=>rejectContract(b.dataset.reject)));
+}
+
+async function signContract(id){
+  const c=contractsCache.find(x=>x.id===id);
+  const me=citizens.find(x=>x.id===loggedInCitizenId);
+  if(!c||!me||c.targetId!==me.id||c.status!=='pending') return;
+  const fee=Number(c.fee)||0;
+  if(fee>0 && (Number(me.kumys)||0)<fee) return showToast('Не хватает кумыса');
+  try{
+    if(fee>0){
+      await updateDoc(doc(db,"citizens",me.id),{kumys:increment(-fee)});
+      await updateDoc(doc(db,"citizens",c.authorId),{kumys:increment(fee)});
+      me.kumys=(Number(me.kumys)||0)-fee;
+    }
+    await updateDoc(doc(db,"contracts",id),{status:'signed',signedAt:Date.now()});
+    showToast('Контракт подписан');
+    sounds.success();
+    renderContracts();
+  }catch(e){ showToast('Ошибка'); console.error(e); }
+}
+async function rejectContract(id){
+  try{
+    await updateDoc(doc(db,"contracts",id),{status:'rejected',signedAt:Date.now()});
+    showToast('Отказ');
+    renderContracts();
+  }catch(e){ showToast('Ошибка'); }
+}
+
+/* ===================== SHOPS ===================== */
+let shopsCache=[];
+try{
+  onSnapshot(collection(db,"shops"), snap=>{
+    shopsCache=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(document.getElementById('view-shops')?.classList.contains('active')) renderShops();
+  });
+}catch(e){ console.warn("shops",e); }
+
+document.getElementById('createShopBtn')?.addEventListener('click', ()=>{
+  if(!loggedInCitizenId) return showToast('ВОЙДИ');
+  document.getElementById('shopName').value='';
+  document.getElementById('shopTrade').value='';
+  document.getElementById('shopDesc').value='';
+  document.getElementById('shopCover').value='';
+  document.getElementById('shopModal').classList.add('show');
+});
+document.getElementById('shopSubmitBtn')?.addEventListener('click', async ()=>{
+  if(!loggedInCitizenId) return;
+  const name=(document.getElementById('shopName').value||'').trim();
+  const trade=(document.getElementById('shopTrade').value||'').trim();
+  const desc=(document.getElementById('shopDesc').value||'').trim();
+  const cover=(document.getElementById('shopCover').value||'').trim();
+  const type=document.getElementById('shopType').value;
+  if(name.length<2) return showToast('Название?');
+  const me=citizens.find(c=>c.id===loggedInCitizenId);
+  const id=uid('shop');
+  try{
+    await setDoc(doc(db,"shops",id),{
+      id, name, trade, desc, cover, type,
+      ownerId: me.id, ownerName: me.nickname||me.name,
+      status: 'pending', items: [], createdAt: Date.now()
+    });
+    document.getElementById('shopModal').classList.remove('show');
+    showToast('Магазин на модерации');
+    sounds.send();
+  }catch(e){ showToast('Ошибка'); console.error(e); }
+});
+
+function renderShops(){
+  const box=document.getElementById('shopsListBox');
+  const myPanel=document.getElementById('myShopPanel');
+  const myBox=document.getElementById('myShopBox');
+  if(!box) return;
+  const approved=shopsCache.filter(s=>s.status==='approved'||(isAdmin&&s.status==='pending'));
+  box.innerHTML=approved.length?approved.map(s=>{
+    const mod=isAdmin&&s.status==='pending'?`<div style="margin-top:6px;display:flex;gap:6px;">
+      <button class="btn" data-approve-shop="${s.id}" style="font-size:11px;">Одобрить</button>
+      <button class="btn btn-danger" data-reject-shop="${s.id}" style="font-size:11px;">Отклонить</button>
+    </div>`:'';
+    const items=(s.items||[]).map(it=>`<div class="id-label">• ${escapeHtml(it.name)} — ${it.price} кумыса ×${it.qty}</div>`).join('');
+    return `<div class="order-item" style="margin-bottom:10px;">
+      ${s.cover?`<img src="${escapeHtml(s.cover)}" style="max-width:100%;max-height:120px;border-radius:8px;margin-bottom:8px;" onerror="this.style.display='none'">`:''}
+      <div style="font-weight:700;">${escapeHtml(s.name)} <span class="id-label">(${s.type==='real'?'реальный':'электронный'})</span></div>
+      <div class="id-label">${escapeHtml(s.trade||'')} · ${escapeHtml(s.ownerName||'')}</div>
+      <div style="margin-top:4px;">${escapeHtml(s.desc||'')}</div>
+      ${items}
+      ${mod}
+    </div>`;
+  }).join(''):'<div class="empty-list">Магазинов пока нет</div>';
+  box.querySelectorAll('[data-approve-shop]').forEach(b=>b.addEventListener('click',async()=>{
+    await updateDoc(doc(db,"shops",b.dataset.approveShop),{status:'approved'});
+    showToast('Одобрено');
+  }));
+  box.querySelectorAll('[data-reject-shop]').forEach(b=>b.addEventListener('click',async()=>{
+    await updateDoc(doc(db,"shops",b.dataset.rejectShop),{status:'rejected'});
+    showToast('Отклонено');
+  }));
+  const mine=shopsCache.find(s=>s.ownerId===loggedInCitizenId);
+  if(mine && myPanel && myBox){
+    myPanel.style.display='';
+    myBox.innerHTML=`<div><b>${escapeHtml(mine.name)}</b> — статус: ${mine.status}</div>
+      <button class="btn" id="addShopItemBtn" style="margin-top:8px;font-size:11px;">+ Товар</button>
+      <div id="myShopItems">${(mine.items||[]).map(it=>`<div class="id-label">${escapeHtml(it.name)} — ${it.price} ×${it.qty}</div>`).join('')}</div>`;
+    document.getElementById('addShopItemBtn')?.addEventListener('click',()=>{
+      window.__editShopId=mine.id;
+      document.getElementById('shopItemModal').classList.add('show');
+    });
+  } else if(myPanel) myPanel.style.display='none';
+}
+
+document.getElementById('siSubmitBtn')?.addEventListener('click', async ()=>{
+  const sid=window.__editShopId;
+  if(!sid||!loggedInCitizenId) return;
+  const shop=shopsCache.find(s=>s.id===sid);
+  if(!shop||shop.ownerId!==loggedInCitizenId) return;
+  const item={
+    id: uid('si'),
+    name:(document.getElementById('siName').value||'').trim(),
+    desc:(document.getElementById('siDesc').value||'').trim(),
+    price:Math.max(1,Math.floor(Number(document.getElementById('siPrice').value)||1)),
+    qty:Math.max(1,Math.floor(Number(document.getElementById('siQty').value)||1)),
+    cover:(document.getElementById('siCover').value||'').trim()
+  };
+  if(!item.name) return showToast('Название товара');
+  const items=[...(shop.items||[]), item];
+  try{
+    await updateDoc(doc(db,"shops",sid),{items});
+    document.getElementById('shopItemModal').classList.remove('show');
+    showToast('Товар добавлен');
+    renderShops();
+  }catch(e){ showToast('Ошибка'); }
+});
+
+/* 10 new minigame stubs in list if mgTabs exists */
+
 let lastMsgNotifyId=null;
 setInterval(()=>{
   if(!loggedInCitizenId||!messages.length)return;
@@ -10358,6 +10736,7 @@ function renderChatHeader(){
         </div>
       </div>
       <div style="display:flex; gap:4px; flex-shrink:0;">
+        <button class="btn" id="sendContractBtn" style="padding:4px 8px; font-size:10px;" title="Контракт">📜</button>
         <button class="btn btn-ghost" id="reportPeerBtn" style="padding:4px 6px; font-size:10px;">!</button>
         <button class="btn btn-danger" id="blockPeerBtn" style="padding:4px 6px; font-size:10px;">⊘</button>
       </div>`;
