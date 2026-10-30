@@ -1058,7 +1058,43 @@
   .avatar-border-ear20{ color:#ff6bcb; box-shadow:0 0 0 3px #ff6bcb, 0 0 18px #ff9eda, 0 0 0 6px rgba(255,107,203,0.25); }
 
   /* ===== CUTE EFFECTS ===== */
-        .effect-ef_oct1{ color:#ff6b9d; text-shadow:0 0 8px #ff6b9d; font-weight:700; }
+        
+  @keyframes aphexShake{
+    0%{transform:translate(0,0) rotate(0deg) skewX(0deg);}
+    15%{transform:translate(-3px,2px) rotate(-2deg) skewX(2deg);}
+    30%{transform:translate(3px,-2px) rotate(2deg) skewX(-3deg);}
+    45%{transform:translate(-2px,3px) rotate(-1deg) skewX(4deg);}
+    60%{transform:translate(4px,1px) rotate(3deg) skewX(-2deg);}
+    75%{transform:translate(-1px,-3px) rotate(-2deg) skewX(1deg);}
+    100%{transform:translate(0,0) rotate(0deg) skewX(0deg);}
+  }
+  @keyframes aphexDistort{
+    0%,100%{filter:hue-rotate(0deg) contrast(1.2) saturate(1.5);}
+    25%{filter:hue-rotate(90deg) contrast(1.8) saturate(2) blur(0.3px);}
+    50%{filter:hue-rotate(180deg) contrast(0.8) saturate(2.5);}
+    75%{filter:hue-rotate(270deg) contrast(1.5) saturate(1.2) blur(0.2px);}
+  }
+  .effect-aphex_twin{
+    display:inline-block;
+    color:#c8ff00;
+    font-weight:800;
+    letter-spacing:1px;
+    animation: aphexShake 0.12s infinite linear, aphexDistort 0.8s infinite steps(4);
+    text-shadow: 2px 0 #f0f, -2px 0 #0ff, 0 0 12px #c8ff00;
+    position:relative;
+  }
+  .aphex-fly{
+    position:fixed;
+    width:18px;height:18px;
+    object-fit:cover;
+    border-radius:3px;
+    pointer-events:none;
+    z-index:250;
+    opacity:0.85;
+    image-rendering:pixelated;
+  }
+
+  .effect-ef_oct1{ color:#ff6b9d; text-shadow:0 0 8px #ff6b9d; font-weight:700; }
   .effect-ef_oct2{ color:#a78bfa; text-shadow:0 0 8px #a78bfa; font-weight:700; }
   .effect-ef_oct3{ color:#38bdf8; text-shadow:0 0 8px #38bdf8; font-weight:700; }
   .effect-ef_oct4{ color:#4ade80; text-shadow:0 0 8px #4ade80; font-weight:700; }
@@ -1789,6 +1825,10 @@
 
   <div class="view" id="view-funzone">
     <div class="panel">
+      <div class="panel-title"><span>Ежедневная награда</span></div>
+      <div id="dailyRewardBox"></div>
+    </div>
+    <div class="panel" style="margin-top:14px;">
       <div class="panel-title"><span>Колесо удачи</span></div>
       <div style="text-align:center;padding:12px;">
         <div id="wheelResult" style="font-size:18px;font-weight:700;min-height:28px;margin-bottom:10px;">Крути!</div>
@@ -2974,6 +3014,7 @@ const EFFECTS_CATALOG = [
   { id: 'ef_oct18', name: 'Нова', price: 98366, currency: 'kumys' },
   { id: 'ef_oct19', name: 'Зенит', price: 116072, currency: 'kumys' },
   { id: 'ef_oct20', name: 'Апекс', price: 136965, currency: 'kumys' },
+  { id: 'aphex_twin', name: 'Aphex Twin', price: 1e36, currency: 'kumys' },
 ];
 
 const BLACK_MARKET_ITEMS = [
@@ -3143,6 +3184,66 @@ const BLACK_MARKET_ITEMS = [
   { id: 'bm_z28', name: 'Контрабанда Z28', desc: 'Косметика / мелкий расходник. Без обмена на кучу валюты.', price: 155029, currency: 'radioCoins', emoji: '📦' },
   { id: 'bm_z29', name: 'Контрабанда Z29', desc: 'Косметика / мелкий расходник. Без обмена на кучу валюты.', price: 201538, currency: 'radioCoins', emoji: '📦' },
   { id: 'bm_z30', name: 'Контрабанда Z30', desc: 'Косметика / мелкий расходник. Без обмена на кучу валюты.', price: 261999, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct1', name: 'Партия #1', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 183, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct2', name: 'Партия #2', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 223, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct3', name: 'Партия #3', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 272, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct4', name: 'Партия #4', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 332, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct5', name: 'Партия #5', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 405, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct6', name: 'Партия #6', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 494, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct7', name: 'Партия #7', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 603, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct8', name: 'Партия #8', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 736, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct9', name: 'Партия #9', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 898, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct10', name: 'Партия #10', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 1095, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct11', name: 'Партия #11', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 1336, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct12', name: 'Партия #12', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 1630, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct13', name: 'Партия #13', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 1989, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct14', name: 'Партия #14', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 2427, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct15', name: 'Партия #15', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 2961, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct16', name: 'Партия #16', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 3612, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct17', name: 'Партия #17', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 4407, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct18', name: 'Партия #18', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 5377, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct19', name: 'Партия #19', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 6560, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct20', name: 'Партия #20', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 8003, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct21', name: 'Партия #21', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 9764, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct22', name: 'Партия #22', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 11912, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct23', name: 'Партия #23', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 14533, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct24', name: 'Партия #24', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 17730, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct25', name: 'Партия #25', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 21631, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct26', name: 'Партия #26', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 26390, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct27', name: 'Партия #27', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 32196, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct28', name: 'Партия #28', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 39279, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct29', name: 'Партия #29', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 47921, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct30', name: 'Партия #30', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 58463, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct31', name: 'Партия #31', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 71325, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct32', name: 'Партия #32', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 87017, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct33', name: 'Партия #33', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 106161, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct34', name: 'Партия #34', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 129516, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct35', name: 'Партия #35', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 158010, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct36', name: 'Партия #36', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 192772, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct37', name: 'Партия #37', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 235182, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct38', name: 'Партия #38', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 286922, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct39', name: 'Партия #39', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 350045, currency: 'radioCoins', emoji: '📦' },
+  { id: 'bm_oct40', name: 'Партия #40', desc: 'Контрабанда. Косметика/мелочь, без читов на валюту.', price: 427055, currency: 'radioCoins', emoji: '📦' },
+  { id: 'case_1', name: 'Кейс #1', desc: 'Открывается сразу. Чем выше номер — тем жирнее дроп.', price: 5000, currency: 'kumys', emoji: '📦', isCase: true, caseTier: 1 },
+  { id: 'case_2', name: 'Кейс #2', desc: 'Открывается сразу. Чем выше номер — тем жирнее дроп.', price: 11000, currency: 'kumys', emoji: '📦', isCase: true, caseTier: 2 },
+  { id: 'case_3', name: 'Кейс #3', desc: 'Открывается сразу. Чем выше номер — тем жирнее дроп.', price: 24200, currency: 'kumys', emoji: '📦', isCase: true, caseTier: 3 },
+  { id: 'case_4', name: 'Кейс #4', desc: 'Открывается сразу. Чем выше номер — тем жирнее дроп.', price: 53240, currency: 'kumys', emoji: '📦', isCase: true, caseTier: 4 },
+  { id: 'case_5', name: 'Кейс #5', desc: 'Открывается сразу. Чем выше номер — тем жирнее дроп.', price: 117128, currency: 'kumys', emoji: '📦', isCase: true, caseTier: 5 },
+  { id: 'case_6', name: 'Кейс #6', desc: 'Открывается сразу. Чем выше номер — тем жирнее дроп.', price: 257681, currency: 'kumys', emoji: '📦', isCase: true, caseTier: 6 },
+  { id: 'case_7', name: 'Кейс #7', desc: 'Открывается сразу. Чем выше номер — тем жирнее дроп.', price: 566899, currency: 'kumys', emoji: '📦', isCase: true, caseTier: 7 },
+  { id: 'case_8', name: 'Кейс #8', desc: 'Открывается сразу. Чем выше номер — тем жирнее дроп.', price: 1247178, currency: 'kumys', emoji: '📦', isCase: true, caseTier: 8 },
+  { id: 'case_9', name: 'Кейс #9', desc: 'Открывается сразу. Чем выше номер — тем жирнее дроп.', price: 2743793, currency: 'kumys', emoji: '📦', isCase: true, caseTier: 9 },
+  { id: 'case_10', name: 'Кейс #10', desc: 'Открывается сразу. Чем выше номер — тем жирнее дроп.', price: 6036346, currency: 'kumys', emoji: '📦', isCase: true, caseTier: 10 },
+  { id: 'case_11', name: 'Кейс #11', desc: 'Открывается сразу. Чем выше номер — тем жирнее дроп.', price: 13279961, currency: 'kumys', emoji: '📦', isCase: true, caseTier: 11 },
+  { id: 'case_12', name: 'Кейс #12', desc: 'Открывается сразу. Чем выше номер — тем жирнее дроп.', price: 29215915, currency: 'kumys', emoji: '📦', isCase: true, caseTier: 12 },
+  { id: 'case_13', name: 'Кейс #13', desc: 'Открывается сразу. Чем выше номер — тем жирнее дроп.', price: 64275013, currency: 'kumys', emoji: '📦', isCase: true, caseTier: 13 },
+  { id: 'case_14', name: 'Кейс #14', desc: 'Открывается сразу. Чем выше номер — тем жирнее дроп.', price: 141405028, currency: 'kumys', emoji: '📦', isCase: true, caseTier: 14 },
+  { id: 'case_15', name: 'Кейс #15', desc: 'Открывается сразу. Чем выше номер — тем жирнее дроп.', price: 311091063, currency: 'kumys', emoji: '📦', isCase: true, caseTier: 15 },
+  { id: 'case_16', name: 'Кейс #16', desc: 'Открывается сразу. Чем выше номер — тем жирнее дроп.', price: 684400340, currency: 'kumys', emoji: '📦', isCase: true, caseTier: 16 },
+  { id: 'case_17', name: 'Кейс #17', desc: 'Открывается сразу. Чем выше номер — тем жирнее дроп.', price: 1505680748, currency: 'kumys', emoji: '📦', isCase: true, caseTier: 17 },
+  { id: 'case_18', name: 'Кейс #18', desc: 'Открывается сразу. Чем выше номер — тем жирнее дроп.', price: 3312497645, currency: 'kumys', emoji: '📦', isCase: true, caseTier: 18 },
+  { id: 'case_19', name: 'Кейс #19', desc: 'Открывается сразу. Чем выше номер — тем жирнее дроп.', price: 7287494821, currency: 'kumys', emoji: '📦', isCase: true, caseTier: 19 },
+  { id: 'case_20', name: 'Кейс #20', desc: 'Открывается сразу. Чем выше номер — тем жирнее дроп.', price: 999999999999, currency: 'kumys', emoji: '📦', isCase: true, caseTier: 20 },
 ];
 let cookiesEnabled = getCookie('gid_cookies_pref') !== 'off';
 
@@ -4253,7 +4354,37 @@ function nicknameHtml(c){
   if(eff === 'eyes'){
     return `<span class="effect-eyes-wrap">${label}<span class="eye eye-l"><span class="pupil"></span></span><span class="eye eye-r"><span class="pupil"></span></span></span>`;
   }
+  if(eff === 'aphex_twin'){
+    return `<span class="effect-aphex_twin" data-aphex="1">${label}</span>`;
+  }
   return `<span class="effect-${eff}">${label}</span>`;
+}
+
+const APHEX_IMG = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRi4Gg_l2p9iP4jXkJ-RrqylbbCqctW-u1Y3x_1qC33Dw&s=10";
+let aphexTimer = null;
+function spawnAphexFlies(){
+  document.querySelectorAll('.aphex-fly').forEach(el=>el.remove());
+  const nodes = document.querySelectorAll('[data-aphex="1"]');
+  if(!nodes.length) return;
+  nodes.forEach(node=>{
+    const r = node.getBoundingClientRect();
+    for(let i=0;i<5;i++){
+      const img = document.createElement('img');
+      img.className = 'aphex-fly';
+      img.src = APHEX_IMG;
+      const ox = r.left + r.width/2 + (Math.random()-0.5)*70;
+      const oy = r.top + r.height/2 + (Math.random()-0.5)*40;
+      img.style.left = ox + 'px';
+      img.style.top = oy + 'px';
+      img.style.transform = 'rotate('+(Math.random()*60-30)+'deg) scale('+(0.6+Math.random()*0.6)+')';
+      document.body.appendChild(img);
+      setTimeout(()=>{ img.style.transition='1.2s linear'; img.style.left=(ox+(Math.random()-0.5)*120)+'px'; img.style.top=(oy-40-Math.random()*50)+'px'; img.style.opacity='0'; },30);
+      setTimeout(()=>img.remove(), 1400);
+    }
+  });
+}
+if(!window.__aphexInterval){
+  window.__aphexInterval = setInterval(spawnAphexFlies, 900);
 }
 
 const effectsModal = document.getElementById('effectsModal');
@@ -4561,6 +4692,23 @@ async function buyBlackMarketItem(itemId, useDiamonds){
       updates.hasRadClicker = true;
       msg = 'СИЛА ☢ +1';
     }
+
+    } else if(it.isCase){
+      const tier = it.caseTier || 1;
+      const drops = [
+        {t:'kumys', v: Math.floor(1000*tier*tier), l: null},
+        {t:'xp', v: Math.floor(10*tier), l: null},
+        {t:'radio', v: Math.floor(5*tier), l: null},
+        {t:'diamonds', v: Math.max(1, Math.floor(tier/4)), l: null}
+      ];
+      if(tier>=15) drops.push({t:'kumys', v: Math.floor(50000*tier), l: null});
+      if(tier>=18) drops.push({t:'diamonds', v: tier, l: null});
+      if(tier>=20) drops.push({t:'kumys', v: 100000000, l: null});
+      const d = drops[Math.floor(Math.random()*drops.length)];
+      if(d.t==='kumys'){ updates.kumys = increment(d.v); msg = 'КЕЙС #'+tier+': +'+d.v+' кумыса'; }
+      if(d.t==='xp'){ updates.xp = increment(d.v); msg = 'КЕЙС #'+tier+': +'+d.v+' XP'; }
+      if(d.t==='radio'){ updates.radioCoins = increment(d.v); msg = 'КЕЙС #'+tier+': +'+d.v+' ☢'; }
+      if(d.t==='diamonds'){ updates.diamonds = increment(d.v); msg = 'КЕЙС #'+tier+': +'+d.v+' 💎'; }
 
     // Штраф 70000 + таймер 10 мин; шанс тюрьмы при активных закупках
     const roll = Math.random();
@@ -5595,6 +5743,36 @@ const MANIKAT_WEAPONS = [
   { id: 'w98',  name: 'Клинок волны 28',     price: 1234766956,       dmg: 4460109,   emoji: '⚔️' },
   { id: 'w99',  name: 'Клинок волны 29',     price: 1728673739,       dmg: 6021147,   emoji: '⚔️' },
   { id: 'w100',  name: 'Клинок волны 30',     price: 2420143235,       dmg: 8128549,   emoji: '⚔️' },
+  { id: 'w101', name: 'Клинок Октября 1', price: 270000, dmg: 2600, emoji: '⚔️' },
+  { id: 'w102', name: 'Клинок Октября 2', price: 364500, dmg: 3380, emoji: '⚔️' },
+  { id: 'w103', name: 'Клинок Октября 3', price: 492075, dmg: 4394, emoji: '⚔️' },
+  { id: 'w104', name: 'Клинок Октября 4', price: 664301, dmg: 5712, emoji: '⚔️' },
+  { id: 'w105', name: 'Клинок Октября 5', price: 896806, dmg: 7425, emoji: '⚔️' },
+  { id: 'w106', name: 'Клинок Октября 6', price: 1210689, dmg: 9653, emoji: '⚔️' },
+  { id: 'w107', name: 'Клинок Октября 7', price: 1634430, dmg: 12549, emoji: '⚔️' },
+  { id: 'w108', name: 'Клинок Октября 8', price: 2206480, dmg: 16314, emoji: '⚔️' },
+  { id: 'w109', name: 'Клинок Октября 9', price: 2978749, dmg: 21208, emoji: '⚔️' },
+  { id: 'w110', name: 'Клинок Октября 10', price: 4021311, dmg: 27571, emoji: '⚔️' },
+  { id: 'w111', name: 'Клинок Октября 11', price: 5428770, dmg: 35843, emoji: '⚔️' },
+  { id: 'w112', name: 'Клинок Октября 12', price: 7328839, dmg: 46596, emoji: '⚔️' },
+  { id: 'w113', name: 'Клинок Октября 13', price: 9893933, dmg: 60575, emoji: '⚔️' },
+  { id: 'w114', name: 'Клинок Октября 14', price: 13356810, dmg: 78747, emoji: '⚔️' },
+  { id: 'w115', name: 'Клинок Октября 15', price: 18031693, dmg: 102371, emoji: '⚔️' },
+  { id: 'w116', name: 'Клинок Октября 16', price: 24342786, dmg: 133083, emoji: '⚔️' },
+  { id: 'w117', name: 'Клинок Октября 17', price: 32862761, dmg: 173008, emoji: '⚔️' },
+  { id: 'w118', name: 'Клинок Октября 18', price: 44364728, dmg: 224910, emoji: '⚔️' },
+  { id: 'w119', name: 'Клинок Октября 19', price: 59892383, dmg: 292384, emoji: '⚔️' },
+  { id: 'w120', name: 'Клинок Октября 20', price: 80854717, dmg: 380099, emoji: '⚔️' },
+  { id: 'w121', name: 'Клинок Октября 21', price: 109153869, dmg: 494129, emoji: '⚔️' },
+  { id: 'w122', name: 'Клинок Октября 22', price: 147357723, dmg: 642367, emoji: '⚔️' },
+  { id: 'w123', name: 'Клинок Октября 23', price: 198932926, dmg: 835078, emoji: '⚔️' },
+  { id: 'w124', name: 'Клинок Октября 24', price: 268559450, dmg: 1085601, emoji: '⚔️' },
+  { id: 'w125', name: 'Клинок Октября 25', price: 362555258, dmg: 1411282, emoji: '⚔️' },
+  { id: 'w126', name: 'Клинок Октября 26', price: 489449598, dmg: 1834666, emoji: '⚔️' },
+  { id: 'w127', name: 'Клинок Октября 27', price: 660756957, dmg: 2385066, emoji: '⚔️' },
+  { id: 'w128', name: 'Клинок Октября 28', price: 892021893, dmg: 3100586, emoji: '⚔️' },
+  { id: 'w129', name: 'Клинок Октября 29', price: 1204229555, dmg: 4030762, emoji: '⚔️' },
+  { id: 'w130', name: 'Клинок Октября 30', price: 1625709900, dmg: 5239991, emoji: '⚔️' },
 ];
 
 const MANIKAT_ARMOR = [
@@ -5689,6 +5867,36 @@ const MANIKAT_ARMOR = [
   { id: 'arm_z28', name: 'Броня слоя 28', price: 660243913, absorb: 0.88, emoji: '🦺' },
   { id: 'arm_z29', name: 'Броня слоя 29', price: 911136600, absorb: 0.89, emoji: '🦺' },
   { id: 'arm_z30', name: 'Броня слоя 30', price: 1257368508, absorb: 0.9, emoji: '🦺' },
+  { id: 'arm_oct1', name: 'Броня Октября 1', price: 199500, absorb: 0.63, emoji: '🦺' },
+  { id: 'arm_oct2', name: 'Броня Октября 2', price: 265335, absorb: 0.64, emoji: '🦺' },
+  { id: 'arm_oct3', name: 'Броня Октября 3', price: 352895, absorb: 0.65, emoji: '🦺' },
+  { id: 'arm_oct4', name: 'Броня Октября 4', price: 469351, absorb: 0.66, emoji: '🦺' },
+  { id: 'arm_oct5', name: 'Броня Октября 5', price: 624236, absorb: 0.67, emoji: '🦺' },
+  { id: 'arm_oct6', name: 'Броня Октября 6', price: 830235, absorb: 0.68, emoji: '🦺' },
+  { id: 'arm_oct7', name: 'Броня Октября 7', price: 1104212, absorb: 0.69, emoji: '🦺' },
+  { id: 'arm_oct8', name: 'Броня Октября 8', price: 1468602, absorb: 0.7, emoji: '🦺' },
+  { id: 'arm_oct9', name: 'Броня Октября 9', price: 1953241, absorb: 0.71, emoji: '🦺' },
+  { id: 'arm_oct10', name: 'Броня Октября 10', price: 2597811, absorb: 0.72, emoji: '🦺' },
+  { id: 'arm_oct11', name: 'Броня Октября 11', price: 3455089, absorb: 0.73, emoji: '🦺' },
+  { id: 'arm_oct12', name: 'Броня Октября 12', price: 4595269, absorb: 0.74, emoji: '🦺' },
+  { id: 'arm_oct13', name: 'Броня Октября 13', price: 6111707, absorb: 0.75, emoji: '🦺' },
+  { id: 'arm_oct14', name: 'Броня Октября 14', price: 8128571, absorb: 0.76, emoji: '🦺' },
+  { id: 'arm_oct15', name: 'Броня Октября 15', price: 10811000, absorb: 0.77, emoji: '🦺' },
+  { id: 'arm_oct16', name: 'Броня Октября 16', price: 14378630, absorb: 0.78, emoji: '🦺' },
+  { id: 'arm_oct17', name: 'Броня Октября 17', price: 19123578, absorb: 0.79, emoji: '🦺' },
+  { id: 'arm_oct18', name: 'Броня Октября 18', price: 25434358, absorb: 0.8, emoji: '🦺' },
+  { id: 'arm_oct19', name: 'Броня Октября 19', price: 33827697, absorb: 0.81, emoji: '🦺' },
+  { id: 'arm_oct20', name: 'Броня Октября 20', price: 44990837, absorb: 0.82, emoji: '🦺' },
+  { id: 'arm_oct21', name: 'Броня Октября 21', price: 59837813, absorb: 0.83, emoji: '🦺' },
+  { id: 'arm_oct22', name: 'Броня Октября 22', price: 79584292, absorb: 0.84, emoji: '🦺' },
+  { id: 'arm_oct23', name: 'Броня Октября 23', price: 105847109, absorb: 0.85, emoji: '🦺' },
+  { id: 'arm_oct24', name: 'Броня Октября 24', price: 140776655, absorb: 0.86, emoji: '🦺' },
+  { id: 'arm_oct25', name: 'Броня Октября 25', price: 187232951, absorb: 0.87, emoji: '🦺' },
+  { id: 'arm_oct26', name: 'Броня Октября 26', price: 249019825, absorb: 0.88, emoji: '🦺' },
+  { id: 'arm_oct27', name: 'Броня Октября 27', price: 331196367, absorb: 0.89, emoji: '🦺' },
+  { id: 'arm_oct28', name: 'Броня Октября 28', price: 440491169, absorb: 0.9, emoji: '🦺' },
+  { id: 'arm_oct29', name: 'Броня Октября 29', price: 585853254, absorb: 0.91, emoji: '🦺' },
+  { id: 'arm_oct30', name: 'Броня Октября 30', price: 779184828, absorb: 0.92, emoji: '🦺' },
 ];
 
 function mkPowerCost(level){ return Math.round(50 * Math.pow(1.7, level - 1)); }
@@ -8869,6 +9077,16 @@ const PET_SPECIES = [
   {id:'pet_z28',name:'Питомец-мутант 28',emoji:'🐾',price:11886119},
   {id:'pet_z29',name:'Питомец-мутант 29',emoji:'🐾',price:15689677},
   {id:'pet_z30',name:'Питомец-мутант 30',emoji:'🐾',price:20710373},
+  {id:'pet_joke1',name:'Хлебный пёс',emoji:'🐾',price:10400},
+  {id:'pet_joke2',name:'Крипто-утка',emoji:'🐾',price:13520},
+  {id:'pet_joke3',name:'Сонный ёж',emoji:'🐾',price:17576},
+  {id:'pet_joke4',name:'Бюрократ-кот',emoji:'🐾',price:22848},
+  {id:'pet_joke5',name:'Глитч-мышь',emoji:'🐾',price:29703},
+  {id:'pet_joke6',name:'Чаевой енот',emoji:'🐾',price:38614},
+  {id:'pet_joke7',name:'Баг-попугай',emoji:'🐾',price:50198},
+  {id:'pet_joke8',name:'Офисный краб',emoji:'🐾',price:65258},
+  {id:'pet_joke9',name:'Мемный гусь',emoji:'🐾',price:84835},
+  {id:'pet_joke10',name:'Пиксель-лис',emoji:'🐾',price:110286},
 ];
 function renderPets(){
   const me = citizens.find(c=>c.id===loggedInCitizenId);
@@ -9750,6 +9968,16 @@ const WORLD_EVENTS = [
   { name:'🎰 Ночь казино', desc:'Выигрыши в казино ×1.3', type:'casinoMul', val:1.3, mins:15 },
   { name:'🐱 День котиков', desc:'Все цены −10% (локально в UI)', type:'sale', val:0.9, mins:20 },
   { name:'☢️ Радиоактивный рассвет', desc:'☢ из мини-игр ×2', type:'radMul', val:2, mins:10 },
+  { name:'🤡 День воздуханов', desc:'Все серьёзные сообщения +1 кринж (косметика)', type:'joke', val:1, mins:15 },
+  { name:'🦆 Утиный парад', desc:'Кря. Просто кря. Клики ×1.1', type:'clickMul', val:1.1, mins:8 },
+  { name:'📦 Посылка без адреса', desc:'+67 кумыса всем кто онлайн (флаг ивента)', type:'passiveKumys', val:67, mins:5 },
+  { name:'🍕 Пицца в столовой', desc:'Цены на ЧР как будто вкуснее (косметика UI)', type:'sale', val:0.95, mins:12 },
+  { name:'🐔 Куриный апокалипсис', desc:'Автокликер кудахчет ×1.2', type:'clickMul', val:1.2, mins:10 },
+  { name:'📱 Селфи-суета', desc:'XP за сообщения ×1 (шутка) и +3 XP разово при входе в чат', type:'xpMul', val:1.05, mins:10 },
+  { name:'🐸 Пепе-дождик', desc:'Случайный мем в тосте каждые 2 мин', type:'joke', val:1, mins:14 },
+  { name:'🎲 Кривой кубик', desc:'Казино слегка пьяное ×1.05', type:'casinoMul', val:1.05, mins:9 },
+  { name:'🛏️ Понедельник', desc:'Клики вполовину морали ×0.9 (шутка-дебафф)', type:'clickMul', val:0.9, mins:6 },
+  { name:'🚀 Когда нибудь', desc:'Надежда ×2, кумыс +10/5с', type:'passiveKumys', val:10, mins:11 }
 ];
 
 let activeWorldEvent = null;
@@ -9765,6 +9993,7 @@ function todayStr(){
 }
 
 function renderFunZone(){
+  renderDailyRewardUI();
   renderChallenges();
   renderWorldEventBox();
   const me = citizens.find(c=>c.id===loggedInCitizenId);
@@ -10409,6 +10638,59 @@ document.getElementById('siSubmitBtn')?.addEventListener('click', async ()=>{
 });
 
 /* 10 new minigame stubs in list if mgTabs exists */
+
+
+/* ===================== DAILY REWARD ===================== */
+function dailyRewardAmount(streak){
+  const base = 500000;
+  return Math.floor(base * Math.pow(1.15, Math.min(30, streak||0)));
+}
+async function claimDailyReward(){
+  if(!loggedInCitizenId) return showToast('ВОЙДИ');
+  const me = citizens.find(c=>c.id===loggedInCitizenId);
+  if(!me) return;
+  const day = (typeof todayStr==='function') ? todayStr() : new Date().toISOString().slice(0,10);
+  if(me.lastDailyClaim === day) return showToast('Уже забрано сегодня');
+  let streak = Number(me.dailyStreak)||0;
+  const prev = me.lastDailyClaim;
+  // simple streak: if yesterday roughly
+  try{
+    const d0 = new Date(day+'T12:00:00');
+    const d1 = prev ? new Date(prev+'T12:00:00') : null;
+    if(d1 && (d0-d1) < 2*86400000 && (d0-d1) > 0) streak += 1;
+    else streak = 1;
+  }catch(e){ streak = 1; }
+  const amt = dailyRewardAmount(streak-1);
+  try{
+    await updateDoc(doc(db,"citizens",me.id), {
+      kumys: increment(amt),
+      lastDailyClaim: day,
+      dailyStreak: streak
+    });
+    me.kumys = (Number(me.kumys)||0)+amt;
+    me.lastDailyClaim = day;
+    me.dailyStreak = streak;
+    showToast('Ежедневка: +'+amt.toLocaleString('ru-RU')+' кумыса (серия '+streak+')');
+    try{ sounds.win(); }catch(e){}
+    renderDailyRewardUI();
+  }catch(e){ showToast('Ошибка'); console.error(e); }
+}
+function renderDailyRewardUI(){
+  const box = document.getElementById('dailyRewardBox');
+  if(!box) return;
+  const me = citizens.find(c=>c.id===loggedInCitizenId);
+  if(!me){ box.innerHTML='<div class="empty-list">Войди</div>'; return; }
+  const day = (typeof todayStr==='function') ? todayStr() : new Date().toISOString().slice(0,10);
+  const claimed = me.lastDailyClaim === day;
+  const streak = Number(me.dailyStreak)||0;
+  const next = dailyRewardAmount(claimed?streak:Math.max(0,streak));
+  box.innerHTML = `<div class="order-item">
+    <div>Серия: <b>${streak}</b> дн. · Сегодня: <b>${next.toLocaleString('ru-RU')}</b> кумыса</div>
+    ${claimed?'<div class="id-label" style="margin-top:6px;">✓ Уже получено</div>':
+    '<button class="btn" id="claimDailyBtn" style="margin-top:8px;">Забрать ежедневку</button>'}
+  </div>`;
+  document.getElementById('claimDailyBtn')?.addEventListener('click', claimDailyReward);
+}
 
 let lastMsgNotifyId=null;
 setInterval(()=>{
