@@ -1592,6 +1592,7 @@
     <button class="btn btn-full" id="gateLoginBtn">Войти</button>
     <div class="id-label" id="gateDbStatus" style="margin-top:10px;text-align:center;">База: подключение...</div>
     <div class="gate-admin-link" id="gateAdminLink">Я администратор</div>
+    <div class="id-label" style="margin-top:8px;text-align:center;font-size:10px;">Аккаунты создаёт админ в панели «Паспорта»</div>
   </div>
 </div>
 
@@ -2956,7 +2957,19 @@ function debounce(fn, ms){
     t = setTimeout(() => fn.apply(this, args), ms);
   };
 }
-const citizensCol = db ? collection(db, "citizens") : null;
+function col(name){ try{ return db ? collection(db, name) : null; }catch(e){ console.warn(e); return null; } }
+const citizensCol = col("citizens");
+const itemsCol = col("auctionItems");
+const reviewsCol = col("reviews");
+const ordersCol = col("orders");
+const messagesCol = col("messages");
+const groupsCol = col("groups");
+const reportsCol = col("reports");
+const forumPostsCol = col("forumPosts");
+const forumCommentsCol = col("forumComments");
+const rankRequestsCol = col("rankRequests");
+const presenceCol = col("presence");
+const duelsCol = col("duels");
 // watchdog: если snapshot не пришёл за 8с
 setTimeout(()=>{
   if(!citizensLoaded){
@@ -2966,17 +2979,6 @@ setTimeout(()=>{
     try{ showToast('БАЗА НЕ ОТВЕЧАЕТ — проверь Firestore Rules'); }catch(e){}
   }
 }, 8000);
-const itemsCol = collection(db, "auctionItems");
-const reviewsCol = collection(db, "reviews");
-const ordersCol = collection(db, "orders");
-const messagesCol = collection(db, "messages");
-const groupsCol = collection(db, "groups");
-const reportsCol = collection(db, "reports");
-const forumPostsCol = collection(db, "forumPosts");
-const forumCommentsCol = collection(db, "forumComments");
-const rankRequestsCol = collection(db, "rankRequests");
-const presenceCol = collection(db, "presence");
-const duelsCol = collection(db, "duels");
 
 const RANKS = [
   "Тупой","Новичок","Бронза","Железо","Серебро","Сталь","Вольфрам","обработанный Вольфрам",
@@ -3597,8 +3599,10 @@ document.querySelectorAll('[data-close-modal]').forEach(btn => {
 
 /* ===================== NAV ===================== */
 function switchView(name){
+  const viewEl = document.getElementById('view-' + name);
+  if(!viewEl){ console.warn('no view', name); showToast('Раздел «'+name+'» не найден'); return; }
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.getElementById('view-' + name).classList.add('active');
+  viewEl.classList.add('active');
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.view === name));
   document.querySelectorAll('.mobile-nav button').forEach(b => b.classList.toggle('active', b.dataset.view === name));
   // вышли из чата — вернуть нижнее меню
@@ -4052,7 +4056,7 @@ const auctionListView = document.getElementById('auctionListView');
 const auctionDetailView = document.getElementById('auctionDetailView');
 const itemDetailBox = document.getElementById('itemDetailBox');
 
-onSnapshot(itemsCol, (snap) => {
+if(itemsCol) onSnapshot(itemsCol, (snap) => {
   items = snap.docs.map(d => d.data());
   renderAuctionGrid();
   if(selectedItemId) renderItemDetail();
@@ -4062,7 +4066,7 @@ onSnapshot(reviewsCol, (snap) => {
   renderAuctionGrid();
   if(selectedItemId) renderItemDetail();
 });
-onSnapshot(ordersCol, (snap) => {
+if(ordersCol) onSnapshot(ordersCol, (snap) => {
   orders = snap.docs.map(d => d.data());
   renderMyOrders();
   if(selectedItemId) renderItemDetail();
@@ -5376,7 +5380,7 @@ let forumPosts = [];
 let forumComments = [];
 let selectedPostId = null;
 
-onSnapshot(forumPostsCol, (snap) => {
+if(forumPostsCol) onSnapshot(forumPostsCol, (snap) => {
   forumPosts = snap.docs.map(d => d.data()).sort((a,b) => b.createdAt - a.createdAt);
   renderForumFeed();
   if(selectedPostId) renderForumPost();
@@ -11415,7 +11419,7 @@ document.getElementById('pr_save').addEventListener('click', async () => {
 });
 
 /* ===================== GROUPS ===================== */
-onSnapshot(groupsCol, (snap) => {
+if(groupsCol) onSnapshot(groupsCol, (snap) => {
   groups = snap.docs.map(d => d.data());
   renderContactsList();
   if(currentChatId && currentChatIsGroup) renderChatHeader();
@@ -11526,7 +11530,7 @@ function renderContactsList(){
 let knownMessageIds = new Set();
 let firstMessagesLoad = true;
 const debouncedRenderChat = debounce(() => { if(currentChatId) renderChatMessages(); }, 120);
-onSnapshot(messagesCol, (snap) => {
+if(messagesCol) onSnapshot(messagesCol, (snap) => {
   // только docChanges при не-первой загрузке — меньше работы CPU
   if(firstMessagesLoad){
     messages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -11564,7 +11568,7 @@ onSnapshot(messagesCol, (snap) => {
 /* ===================== ПРИСУТСТВИЕ (реже пишет) ===================== */
 let presenceMap = {};
 const debouncedPresenceUI = debounce(() => updateChatPresenceUI(), 400);
-onSnapshot(presenceCol, (snap) => {
+if(presenceCol) onSnapshot(presenceCol, (snap) => {
   const m = {};
   snap.docs.forEach(d => { const v = d.data(); m[v.id || d.id] = v; });
   presenceMap = m;
