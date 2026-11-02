@@ -189,6 +189,23 @@
     .chat-composer{ position:sticky; bottom:0; background:var(--bg-panel); padding-bottom: env(safe-area-inset-bottom,0px); }
   }
 
+  
+  .urgent-banner{background:linear-gradient(90deg,#b91c1c,#dc2626);color:#fff;padding:12px 14px;border-radius:10px;margin-bottom:12px;font-weight:700;border:2px solid #fca5a5;animation:urgentPulse 1.5s infinite;}
+  @keyframes urgentPulse{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.45);}50%{box-shadow:0 0 0 6px rgba(220,38,38,0);}}
+  .school-subtabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+  .school-subtabs button{font-size:11px;padding:6px 10px;}
+  .school-subtabs button.active{background:var(--green)!important;color:#fff!important;}
+  .video-feed{display:flex;flex-direction:column;gap:16px;max-width:480px;margin:0 auto;}
+  .video-card{background:var(--bg-panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+  .video-card video{width:100%;display:block;background:#000;max-height:70vh;}
+  .video-card.portrait video{max-height:75vh;object-fit:contain;}
+  .video-meta{padding:10px 12px;}
+  .video-editor-preview{position:relative;background:#111;border-radius:12px;overflow:hidden;aspect-ratio:9/16;max-height:50vh;margin:0 auto;}
+  .video-editor-preview.landscape{aspect-ratio:16/9;}
+  .video-editor-preview video{width:100%;height:100%;object-fit:cover;}
+  .ve-overlay-text{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);font-weight:800;font-size:18px;text-shadow:0 2px 4px #000;pointer-events:none;text-align:center;max-width:90%;}
+  .ve-mask{position:absolute;inset:0;pointer-events:none;opacity:.55;}
+
   .energy-bar{
     border-radius: 8px !important;
     height: 10px !important;
@@ -1502,6 +1519,8 @@
     <button class="tab-btn" data-view="forum">Форум</button>
     <button class="tab-btn" data-view="globalchat">Общий чат</button>
     <button class="tab-btn" data-view="news">Новости</button>
+    <button class="tab-btn" data-view="school">Школа</button>
+    <button class="tab-btn" data-view="videos">Видосики</button>
     <button class="tab-btn" data-view="achievements">Ачивки</button>
     <button class="tab-btn" data-view="battlepass">Боевой пропуск</button>
     <button class="tab-btn" data-view="funzone">Фишки ✨</button>
@@ -1760,6 +1779,37 @@
   </div>
 
   
+  
+  <div class="view" id="view-school">
+    <div id="schoolUrgentBox"></div>
+    <div class="school-subtabs" id="schoolSubtabs">
+      <button class="btn btn-ghost active" data-sschool="hw">Домашка</button>
+      <button class="btn btn-ghost" data-sschool="news">Новости школы</button>
+      <button class="btn btn-ghost" data-sschool="holidays">Праздники</button>
+      <button class="btn btn-ghost" data-sschool="tea">Нехорошие вещи</button>
+      <button class="btn btn-ghost" data-sschool="modapp">Заявка на модерку</button>
+      <button class="btn btn-ghost" data-sschool="urgent">Срочные</button>
+    </div>
+    <div class="panel"><div id="schoolContent"></div></div>
+  </div>
+  <div class="view" id="view-videos">
+    <div class="panel">
+      <div class="panel-title"><span>Видосики</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn" id="vidOpenEditorBtn" style="font-size:11px;padding:6px 10px;">+ Снять / загрузить</button>
+          <button class="btn btn-ghost" id="vidChannelBtn" style="font-size:11px;padding:6px 10px;">Мой канал</button>
+        </div>
+      </div>
+      <input id="vidSearch" placeholder="Поиск видео..." style="width:100%;margin-bottom:10px;">
+      <div class="school-subtabs" id="vidFilters">
+        <button class="btn btn-ghost active" data-vfilter="all">Все</button>
+        <button class="btn btn-ghost" data-vfilter="short">9:16</button>
+        <button class="btn btn-ghost" data-vfilter="wide">16:9</button>
+      </div>
+      <div id="videoFeed" class="video-feed"></div>
+    </div>
+  </div>
+
   <div class="view" id="view-news">
     <div class="panel">
       <div class="panel-title"><span>Новости Гидрибсии</span>
@@ -2301,6 +2351,8 @@
   <button data-view="achievements">Ачивки</button>
   <button data-view="pets">Питомцы</button>
   <button data-view="news">Новости</button>
+  <button data-view="school">Школа</button>
+  <button data-view="videos">Видосики</button>
   <button data-view="globalchat">Общий</button>
   <button data-view="exchange">Обмен</button>
   <button data-view="richest">Богачи</button>
@@ -2353,6 +2405,58 @@
     <div class="form-group"><label>Обложка URL</label><input id="siCover"></div>
     <div class="modal-actions">
       <button class="btn" id="siSubmitBtn">Добавить</button>
+      <button class="btn btn-ghost" data-close-modal>Отмена</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="videoEditorModal">
+  <div class="modal-box" style="max-width:440px;max-height:92vh;overflow:auto;">
+    <div class="modal-close" data-close-modal>&#10005;</div>
+    <h3>Мини-редактор</h3>
+    <div class="id-label" style="margin-bottom:8px;">Лимит ~700 КБ. Качество 80p–360p. Запись остановится по лимиту.</div>
+    <div class="form-group"><label>Ориентация</label>
+      <select id="veOrient"><option value="portrait">9:16 короткий</option><option value="landscape">16:9 обычный</option></select>
+    </div>
+    <div class="form-group"><label>Качество</label>
+      <select id="veQuality"><option value="360">360p</option><option value="240">240p</option><option value="144">144p</option><option value="80">80p</option></select>
+    </div>
+    <div class="form-group"><label><input type="checkbox" id="veSound" checked> Звук с микрофона</label></div>
+    <div class="form-group"><label>Свой звук (маленький файл)</label><input type="file" id="veSoundFile" accept="audio/*"></div>
+    <div id="vePreview" class="video-editor-preview portrait">
+      <video id="veLive" muted playsinline></video>
+      <div class="ve-mask" id="veMask"></div>
+      <div class="ve-overlay-text" id="veTextOverlay"></div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;">
+      <button class="btn" id="veRecBtn" style="font-size:12px;">⏺ Запись</button>
+      <button class="btn btn-ghost" id="veStopBtn" style="font-size:12px;">⏹ Стоп</button>
+      <button class="btn btn-ghost" id="veUploadBtn" style="font-size:12px;">📁 Файл</button>
+      <input type="file" id="veFileInput" accept="video/*" style="display:none;">
+    </div>
+    <div class="form-group"><label>Текст</label><input id="veText"></div>
+    <div class="form-group"><label>Цвет текста</label><input id="veTextColor" type="color" value="#ffffff"></div>
+    <div class="form-group"><label>Смайлик</label><select id="veEmoji"><option value="">—</option></select></div>
+    <div class="form-group"><label>Эффект</label><select id="veEffect"><option value="">Нет</option></select></div>
+    <div class="form-group"><label>Маска</label><select id="veMaskSel"><option value="">Нет</option></select></div>
+    <div class="form-group"><label>Название</label><input id="veTitle" maxlength="80"></div>
+    <div class="form-group"><label>Описание</label><textarea id="veDesc" rows="2"></textarea></div>
+    <div class="id-label" id="veStatus">Готов</div>
+    <div class="modal-actions">
+      <button class="btn" id="vePublishBtn">Опубликовать</button>
+      <button class="btn btn-ghost" data-close-modal>Закрыть</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="channelModal">
+  <div class="modal-box" style="max-width:400px;">
+    <div class="modal-close" data-close-modal>&#10005;</div>
+    <h3>Мой канал</h3>
+    <div class="form-group"><label>Ник канала</label><input id="chName" maxlength="40"></div>
+    <div class="form-group"><label>Аватар URL</label><input id="chAvatar" placeholder="https://..."></div>
+    <div class="modal-actions">
+      <button class="btn" id="chSaveBtn">Сохранить</button>
       <button class="btn btn-ghost" data-close-modal>Отмена</button>
     </div>
   </div>
@@ -3335,6 +3439,8 @@ function switchView(name){
   if(name === 'achievements'){ renderAchievements(); }
   if(name === 'battlepass'){ renderBattlePass(); }
   if(name === 'funzone'){ renderFunZone(); }
+  if(name === 'school'){ try{renderSchool();}catch(e){console.error(e);} }
+  if(name === 'videos'){ try{renderVideoFeed();}catch(e){console.error(e);} }
   if(name === 'contracts'){ renderContracts(); }
   if(name === 'shops'){ renderShops(); }
   if(name === 'clans'){ renderClans(); }
@@ -10435,6 +10541,337 @@ document.getElementById('siSubmitBtn')?.addEventListener('click', async ()=>{
 });
 
 /* 10 new minigame stubs in list if mgTabs exists */
+
+
+/* ===================== SCHOOL + VIDEOS (safe add-on) ===================== */
+let schoolPosts=[], schoolFilter='hw';
+let videosCache=[], videoFilter='all';
+const VE_EMOJIS=['😀','🔥','💀','✨','🐱','🐸','👻','🎮','💅','🚀','😎','🤡','💔','⚡','🌈','🍕','🦆','👑','🧊','🎯'];
+const VE_EFFECTS=['','grayscale','sepia','contrast','hue','blur','invert','saturate','red','blue','green','pink','glitch','soft','hard','vintage','neon','cold','warm','noir','pop'];
+const VE_EFFECT_CSS={grayscale:'grayscale(1)',sepia:'sepia(1)',contrast:'contrast(1.6)',hue:'hue-rotate(90deg)',blur:'blur(2px)',invert:'invert(.85)',saturate:'saturate(2.2)',red:'sepia(1) hue-rotate(-30deg) saturate(3)',blue:'sepia(1) hue-rotate(180deg) saturate(2)',green:'sepia(1) hue-rotate(60deg) saturate(2)',pink:'hue-rotate(280deg) saturate(2)',glitch:'contrast(1.8) saturate(2)',soft:'brightness(1.1) contrast(.9)',hard:'contrast(1.5)',vintage:'sepia(.5)',neon:'saturate(2) brightness(1.15)',cold:'hue-rotate(180deg)',warm:'sepia(.25) saturate(1.3)',noir:'grayscale(1) contrast(1.4)',pop:'saturate(2.5)'};
+const VE_MASKS={
+  '': '',
+  vignette:'radial-gradient(circle, transparent 40%, #000 100%)',
+  scan:'repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.25) 3px)',
+  hearts:'radial-gradient(circle at 20% 30%,rgba(255,100,150,.35),transparent 25%)',
+  rain:'repeating-linear-gradient(180deg,transparent,transparent 6px,rgba(150,200,255,.12) 7px)',
+  fire:'linear-gradient(180deg,rgba(255,100,0,.2),rgba(255,0,0,.15))',
+  ice:'linear-gradient(180deg,rgba(100,200,255,.25),transparent)',
+  matrix:'repeating-linear-gradient(0deg,rgba(0,255,70,.08),rgba(0,255,70,.08) 1px,transparent 6px)',
+  old:'linear-gradient(90deg,rgba(0,0,0,.4),transparent 8%,transparent 92%,rgba(0,0,0,.4))',
+  spotlight:'radial-gradient(circle at 50% 40%,transparent 30%,rgba(0,0,0,.65) 100%)',
+  rgb:'linear-gradient(90deg,rgba(255,0,0,.15),rgba(0,255,0,.12),rgba(0,0,255,.15))'
+};
+
+function canPostSchoolOfficial(){
+  if(isAdmin) return true;
+  const me=citizens.find(c=>c.id===loggedInCitizenId);
+  return !!(me && (me.moderator || me.isModerator));
+}
+
+try{
+  onSnapshot(collection(db,'schoolPosts'), snap=>{
+    schoolPosts=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(document.getElementById('view-school')?.classList.contains('active')) renderSchool();
+  }, e=>console.warn('schoolPosts',e));
+}catch(e){ console.warn(e); }
+
+try{
+  onSnapshot(collection(db,'videos'), snap=>{
+    videosCache=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(document.getElementById('view-videos')?.classList.contains('active')) renderVideoFeed();
+  }, e=>console.warn('videos',e));
+}catch(e){ console.warn(e); }
+
+document.getElementById('schoolSubtabs')?.addEventListener('click',e=>{
+  const b=e.target.closest('[data-sschool]'); if(!b) return;
+  schoolFilter=b.dataset.sschool;
+  document.querySelectorAll('#schoolSubtabs button').forEach(x=>x.classList.toggle('active',x===b));
+  renderSchool();
+});
+
+function renderSchoolUrgent(){
+  const box=document.getElementById('schoolUrgentBox'); if(!box) return;
+  const list=schoolPosts.filter(p=>p.kind==='urgent'&&!p.hidden).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0,3);
+  box.innerHTML=list.map(p=>`<div class="urgent-banner">🚨 ${escapeHtml(p.title||'СРОЧНО')}: ${escapeHtml(p.text||'')}</div>`).join('');
+}
+
+function renderSchool(){
+  renderSchoolUrgent();
+  const box=document.getElementById('schoolContent'); if(!box) return;
+  const me=citizens.find(c=>c.id===loggedInCitizenId);
+  const official=canPostSchoolOfficial();
+  const kindMap={hw:'homework',news:'school_news',holidays:'holiday',tea:'tea',urgent:'urgent',modapp:'modapp'};
+  const kind=kindMap[schoolFilter]||'homework';
+
+  if(kind==='modapp'){
+    box.innerHTML=`<div class="id-label">Заявка на модератора</div>
+      <div class="form-group"><label>Почему ты</label><textarea id="modAppText" rows="3"></textarea></div>
+      <button class="btn" id="modAppSend">Отправить</button>
+      <div id="modAppList" style="margin-top:12px;"></div>`;
+    document.getElementById('modAppSend')?.addEventListener('click',async()=>{
+      if(!loggedInCitizenId) return showToast('ВОЙДИ');
+      const text=(document.getElementById('modAppText').value||'').trim();
+      if(text.length<5) return showToast('Напиши подробнее');
+      const id=uid('modapp');
+      try{
+        await setDoc(doc(db,'modApps',id),{id,userId:loggedInCitizenId,nick:me?.nickname||me?.name||'',text,status:'pending',createdAt:Date.now()});
+        showToast('Отправлено');
+      }catch(e){ showToast('Ошибка'); console.error(e); }
+    });
+    if(isAdmin){
+      getDocs(collection(db,'modApps')).then(snap=>{
+        const el=document.getElementById('modAppList'); if(!el) return;
+        const rows=snap.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.status==='pending');
+        el.innerHTML=rows.length?rows.map(r=>`<div class="order-item" style="margin-bottom:8px;"><b>${escapeHtml(r.nick)}</b><div>${escapeHtml(r.text)}</div>
+          <button class="btn" style="margin-top:6px;font-size:11px;" data-apmod="${r.userId}" data-app="${r.id}">Сделать модером</button></div>`).join(''):'<div class="empty-list">Нет заявок</div>';
+        el.querySelectorAll('[data-apmod]').forEach(b=>b.addEventListener('click',async()=>{
+          try{
+            await updateDoc(doc(db,'citizens',b.dataset.apmod),{moderator:true});
+            await updateDoc(doc(db,'modApps',b.dataset.app),{status:'approved'});
+            showToast('ОК'); renderSchool();
+          }catch(e){ showToast('Ошибка'); }
+        }));
+      }).catch(()=>{});
+    }
+    return;
+  }
+
+  const titles={homework:'Домашка (нет в журнале)',school_news:'Новости школы',holiday:'Праздники',tea:'Нехорошие вещи (анонимно)',urgent:'Срочные'};
+  let form='';
+  if(kind==='tea'){
+    form=`<div class="id-label">Анонимно — автор не сохраняется</div>
+      <div class="form-group"><label>Заголовок</label><input id="schTitle" maxlength="80"></div>
+      <div class="form-group"><label>Текст</label><textarea id="schText" rows="3"></textarea></div>
+      <button class="btn" id="schPostBtn">Отправить анонимно</button>`;
+  } else if(kind==='urgent'||kind==='school_news'||kind==='holiday'){
+    form=official?`<div class="id-label">Только модеры и админ</div>
+      <div class="form-group"><label>Заголовок</label><input id="schTitle" maxlength="80"></div>
+      <div class="form-group"><label>Текст</label><textarea id="schText" rows="3"></textarea></div>
+      ${kind==='holiday'?'<div class="form-group"><label>Дата</label><input id="schDate" type="date"></div>':''}
+      <button class="btn" id="schPostBtn">Опубликовать</button>`
+      :`<div class="id-label">Писать могут только модераторы и админы</div>`;
+  } else {
+    form=`<div class="id-label">Задания, которых нет в журнале</div>
+      <div class="form-group"><label>Предмет</label><input id="schTitle" maxlength="80"></div>
+      <div class="form-group"><label>Что задали</label><textarea id="schText" rows="3"></textarea></div>
+      <button class="btn" id="schPostBtn">Выложить</button>`;
+  }
+  const list=schoolPosts.filter(p=>p.kind===kind&&!p.hidden).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  const items=list.length?list.map(p=>`<div class="order-item" style="margin-bottom:10px;">
+    <div style="font-weight:700;">${escapeHtml(p.title||'')}</div>
+    <div style="margin-top:4px;white-space:pre-wrap;">${escapeHtml(p.text||'')}</div>
+    <div class="id-label">${p.kind==='tea'?'аноним':escapeHtml(p.authorName||'')} ${p.date?('· '+escapeHtml(p.date)):''}
+    ${(isAdmin||p.authorId===loggedInCitizenId)?` · <span data-del-sch="${p.id}" style="cursor:pointer;color:var(--red);">удалить</span>`:''}</div>
+  </div>`).join(''):'<div class="empty-list">Пусто</div>';
+  box.innerHTML=`<h3 style="margin:0 0 10px;font-size:15px;">${titles[kind]||''}</h3>${form}<div style="margin-top:14px;">${items}</div>`;
+  document.getElementById('schPostBtn')?.addEventListener('click',async()=>{
+    if(!loggedInCitizenId && kind!=='tea') return showToast('ВОЙДИ');
+    if((kind==='urgent'||kind==='school_news'||kind==='holiday')&&!official) return showToast('Только модеры/админ');
+    const title=(document.getElementById('schTitle')?.value||'').trim();
+    const text=(document.getElementById('schText')?.value||'').trim();
+    if(!text) return showToast('Напиши текст');
+    const id=uid('sch');
+    try{
+      await setDoc(doc(db,'schoolPosts',id),{
+        id,kind,title,text,date:document.getElementById('schDate')?.value||'',
+        createdAt:Date.now(),
+        authorId: kind==='tea'?null:loggedInCitizenId,
+        authorName: kind==='tea'?'Аноним':(me?.nickname||me?.name||'')
+      });
+      showToast('Опубликовано'); sounds.send();
+    }catch(e){ showToast('Ошибка'); console.error(e); }
+  });
+  box.querySelectorAll('[data-del-sch]').forEach(el=>el.addEventListener('click',async()=>{
+    if(!confirm('Удалить?')) return;
+    try{ await deleteDoc(doc(db,'schoolPosts',el.dataset.delSch)); showToast('Удалено'); }catch(e){ showToast('Ошибка'); }
+  }));
+}
+
+/* videos */
+let veRecorder=null, veChunks=[], veBlob=null, veStream=null, veRecording=false;
+function veMax(){ return (typeof MAX_FILE_BYTES==='number'?MAX_FILE_BYTES:700*1024); }
+function initVeSelects(){
+  const em=document.getElementById('veEmoji');
+  const ef=document.getElementById('veEffect');
+  const mk=document.getElementById('veMaskSel');
+  if(em && em.options.length<=1) VE_EMOJIS.forEach(e=>{const o=document.createElement('option');o.value=e;o.textContent=e;em.appendChild(o);});
+  if(ef && ef.options.length<=1) VE_EFFECTS.forEach(e=>{const o=document.createElement('option');o.value=e;o.textContent=e||'Нет';ef.appendChild(o);});
+  if(mk && mk.options.length<=1) Object.keys(VE_MASKS).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k||'Нет';mk.appendChild(o);});
+}
+function veOverlay(){
+  const t=(document.getElementById('veText')?.value||'')+(document.getElementById('veEmoji')?.value||'');
+  const el=document.getElementById('veTextOverlay');
+  if(el){ el.textContent=t; el.style.color=document.getElementById('veTextColor')?.value||'#fff'; }
+  const live=document.getElementById('veLive');
+  const fx=document.getElementById('veEffect')?.value||'';
+  if(live) live.style.filter=VE_EFFECT_CSS[fx]||'';
+  const maskEl=document.getElementById('veMask');
+  if(maskEl) maskEl.style.background=VE_MASKS[document.getElementById('veMaskSel')?.value||'']||'transparent';
+  const prev=document.getElementById('vePreview');
+  if(prev){
+    const o=document.getElementById('veOrient')?.value||'portrait';
+    prev.classList.toggle('landscape', o==='landscape');
+    prev.classList.toggle('portrait', o!=='landscape');
+  }
+}
+['veText','veTextColor','veEmoji','veEffect','veMaskSel','veOrient'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('input', veOverlay);
+  document.getElementById(id)?.addEventListener('change', veOverlay);
+});
+document.getElementById('vidOpenEditorBtn')?.addEventListener('click',()=>{
+  if(!loggedInCitizenId) return showToast('ВОЙДИ');
+  initVeSelects(); veBlob=null;
+  document.getElementById('veStatus').textContent='Готов';
+  document.getElementById('videoEditorModal').classList.add('show');
+});
+document.getElementById('vidChannelBtn')?.addEventListener('click',()=>{
+  if(!loggedInCitizenId) return showToast('ВОЙДИ');
+  const me=citizens.find(c=>c.id===loggedInCitizenId);
+  document.getElementById('chName').value=me?.channelName||me?.nickname||me?.name||'';
+  document.getElementById('chAvatar').value=me?.channelAvatar||me?.avatarUrl||'';
+  document.getElementById('channelModal').classList.add('show');
+});
+document.getElementById('chSaveBtn')?.addEventListener('click',async()=>{
+  const me=citizens.find(c=>c.id===loggedInCitizenId); if(!me) return;
+  const channelName=(document.getElementById('chName').value||'').trim().slice(0,40);
+  const channelAvatar=(document.getElementById('chAvatar').value||'').trim();
+  try{
+    await updateDoc(doc(db,'citizens',me.id),{channelName,channelAvatar});
+    me.channelName=channelName; me.channelAvatar=channelAvatar;
+    document.getElementById('channelModal').classList.remove('show');
+    showToast('Канал сохранён');
+  }catch(e){ showToast('Ошибка'); }
+});
+document.getElementById('veRecBtn')?.addEventListener('click',async()=>{
+  if(veRecording) return;
+  try{
+    const q=Number(document.getElementById('veQuality')?.value||360);
+    const h=Math.max(80,q);
+    const portrait=(document.getElementById('veOrient')?.value||'portrait')==='portrait';
+    const w=portrait?Math.round(h*9/16):Math.round(h*16/9);
+    veStream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:w},height:{ideal:h},facingMode:'user'},audio:!!document.getElementById('veSound')?.checked});
+    const live=document.getElementById('veLive'); live.srcObject=veStream; await live.play();
+    veChunks=[];
+    const mime=MediaRecorder.isTypeSupported('video/webm;codecs=vp8')?'video/webm;codecs=vp8':'video/webm';
+    veRecorder=new MediaRecorder(veStream,{mimeType:mime,videoBitsPerSecond:120000});
+    veRecorder.ondataavailable=e=>{
+      if(e.data&&e.data.size){
+        veChunks.push(e.data);
+        const total=veChunks.reduce((a,b)=>a+b.size,0);
+        document.getElementById('veStatus').textContent='Запись... '+Math.round(total/1024)+'КБ';
+        if(total>veMax()) try{veRecorder.stop();}catch(err){}
+      }
+    };
+    veRecorder.onstop=()=>{
+      veRecording=false;
+      veStream?.getTracks().forEach(t=>t.stop());
+      veBlob=new Blob(veChunks,{type:'video/webm'});
+      if(veBlob.size>veMax()){ document.getElementById('veStatus').textContent='Слишком тяжёлое — снизь качество'; veBlob=null; return; }
+      const live=document.getElementById('veLive');
+      live.srcObject=null; live.src=URL.createObjectURL(veBlob); live.controls=true; live.muted=false;
+      document.getElementById('veStatus').textContent='Готово '+Math.round(veBlob.size/1024)+'КБ';
+    };
+    veRecording=true; veRecorder.start(200);
+    document.getElementById('veStatus').textContent='Идёт запись...';
+  }catch(e){ showToast('Нет камеры'); console.error(e); }
+});
+document.getElementById('veStopBtn')?.addEventListener('click',()=>{ if(veRecorder&&veRecording) veRecorder.stop(); });
+document.getElementById('veUploadBtn')?.addEventListener('click',()=>document.getElementById('veFileInput').click());
+document.getElementById('veFileInput')?.addEventListener('change',e=>{
+  const f=e.target.files?.[0]; if(!f) return;
+  if(f.size>veMax()) return showToast('Файл больше лимита');
+  veBlob=f;
+  const live=document.getElementById('veLive'); live.srcObject=null; live.src=URL.createObjectURL(f); live.controls=true;
+  document.getElementById('veStatus').textContent='Файл '+Math.round(f.size/1024)+'КБ';
+});
+document.getElementById('vePublishBtn')?.addEventListener('click',async()=>{
+  if(!loggedInCitizenId) return showToast('ВОЙДИ');
+  if(!veBlob) return showToast('Нет видео');
+  if(veBlob.size>veMax()) return showToast('Слишком большой файл');
+  const me=citizens.find(c=>c.id===loggedInCitizenId);
+  document.getElementById('veStatus').textContent='Публикация...';
+  try{
+    const dataUrl=await fileToDataUrl(veBlob);
+    const id=uid('vid');
+    await setDoc(doc(db,'videos',id),{
+      id,
+      title:(document.getElementById('veTitle').value||'').trim()||'Без названия',
+      desc:(document.getElementById('veDesc').value||'').trim(),
+      orient:document.getElementById('veOrient').value||'portrait',
+      dataUrl,
+      overlayText:((document.getElementById('veText')?.value||'')+(document.getElementById('veEmoji')?.value||'')).trim(),
+      overlayColor:document.getElementById('veTextColor')?.value||'#fff',
+      effect:document.getElementById('veEffect')?.value||'',
+      mask:document.getElementById('veMaskSel')?.value||'',
+      authorId:me.id,
+      authorName:me.channelName||me.nickname||me.name,
+      authorAvatar:me.channelAvatar||me.avatarUrl||'',
+      likes:[], likesCount:0, createdAt:Date.now()
+    });
+    document.getElementById('videoEditorModal').classList.remove('show');
+    showToast('Опубликовано'); sounds.success();
+  }catch(e){ showToast('Ошибка (лимит/Rules)'); console.error(e); }
+});
+document.getElementById('vidSearch')?.addEventListener('input',()=>renderVideoFeed());
+document.getElementById('vidFilters')?.addEventListener('click',e=>{
+  const b=e.target.closest('[data-vfilter]'); if(!b) return;
+  videoFilter=b.dataset.vfilter;
+  document.querySelectorAll('#vidFilters button').forEach(x=>x.classList.toggle('active',x===b));
+  renderVideoFeed();
+});
+function renderVideoFeed(){
+  const box=document.getElementById('videoFeed'); if(!box) return;
+  const q=(document.getElementById('vidSearch')?.value||'').trim().toLowerCase();
+  let list=videosCache.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  if(videoFilter==='short') list=list.filter(v=>v.orient==='portrait');
+  if(videoFilter==='wide') list=list.filter(v=>v.orient==='landscape');
+  if(q) list=list.filter(v=>((v.title||'')+(v.desc||'')+(v.authorName||'')).toLowerCase().includes(q));
+  if(!list.length){ box.innerHTML='<div class="empty-list">Видео нет</div>'; return; }
+  box.innerHTML=list.map(v=>{
+    const liked=loggedInCitizenId&&(v.likes||[]).includes(loggedInCitizenId);
+    const fx=VE_EFFECT_CSS[v.effect]||'';
+    const mask=VE_MASKS[v.mask]||'';
+    return `<div class="video-card ${v.orient==='portrait'?'portrait':''}">
+      <div style="position:relative;">
+        <video src="${v.dataUrl||''}" controls playsinline preload="metadata" style="filter:${fx}"></video>
+        ${mask?`<div style="position:absolute;inset:0;pointer-events:none;background:${mask};opacity:.5;"></div>`:''}
+        ${v.overlayText?`<div style="position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);color:${escapeHtml(v.overlayColor||'#fff')};font-weight:800;text-shadow:0 2px 4px #000;text-align:center;max-width:90%;pointer-events:none;">${escapeHtml(v.overlayText)}</div>`:''}
+      </div>
+      <div class="video-meta">
+        <div style="font-weight:700;">${escapeHtml(v.title||'')}</div>
+        <div class="id-label">${escapeHtml(v.authorName||'')} · ${v.orient==='portrait'?'9:16':'16:9'}</div>
+        <div style="font-size:13px;color:var(--text-dim);margin-top:4px;">${escapeHtml(v.desc||'')}</div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="btn ${liked?'':'btn-ghost'}" data-like-vid="${v.id}" style="font-size:12px;padding:6px 10px;">❤ ${v.likesCount||(v.likes||[]).length||0}</button>
+          <button class="btn btn-ghost" data-sub-vid="${v.authorId||''}" style="font-size:12px;padding:6px 10px;">Подписка</button>
+          ${(isAdmin||v.authorId===loggedInCitizenId)?`<button class="btn btn-danger" data-del-vid="${v.id}" style="font-size:11px;padding:6px 8px;">✕</button>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  box.querySelectorAll('[data-like-vid]').forEach(b=>b.addEventListener('click',async()=>{
+    if(!loggedInCitizenId) return showToast('ВОЙДИ');
+    const v=videosCache.find(x=>x.id===b.dataset.likeVid); if(!v) return;
+    const set=new Set(v.likes||[]);
+    if(set.has(loggedInCitizenId)) set.delete(loggedInCitizenId); else set.add(loggedInCitizenId);
+    const arr=[...set];
+    try{ await updateDoc(doc(db,'videos',v.id),{likes:arr,likesCount:arr.length}); }catch(e){ showToast('Ошибка'); }
+  }));
+  box.querySelectorAll('[data-sub-vid]').forEach(b=>b.addEventListener('click',async()=>{
+    if(!loggedInCitizenId||!b.dataset.subVid) return showToast('ВОЙДИ');
+    if(b.dataset.subVid===loggedInCitizenId) return showToast('Это ты');
+    const me=citizens.find(c=>c.id===loggedInCitizenId);
+    const subs=new Set(me?.subscriptions||[]);
+    if(subs.has(b.dataset.subVid)){ subs.delete(b.dataset.subVid); showToast('Отписка'); }
+    else { subs.add(b.dataset.subVid); showToast('Подписка'); }
+    try{ await updateDoc(doc(db,'citizens',me.id),{subscriptions:[...subs]}); me.subscriptions=[...subs]; }catch(e){ showToast('Ошибка'); }
+  }));
+  box.querySelectorAll('[data-del-vid]').forEach(b=>b.addEventListener('click',async()=>{
+    if(!confirm('Удалить?')) return;
+    try{ await deleteDoc(doc(db,'videos',b.dataset.delVid)); showToast('Удалено'); }catch(e){ showToast('Ошибка'); }
+  }));
+}
 
 let lastMsgNotifyId=null;
 setInterval(()=>{
