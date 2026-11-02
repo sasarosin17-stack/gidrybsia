@@ -190,11 +190,20 @@
   }
 
   
-  .urgent-banner{background:linear-gradient(90deg,#b91c1c,#dc2626);color:#fff;padding:12px 14px;border-radius:10px;margin-bottom:12px;font-weight:700;border:2px solid #fca5a5;animation:urgentPulse 1.5s infinite;}
-  @keyframes urgentPulse{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.45);}50%{box-shadow:0 0 0 6px rgba(220,38,38,0);}}
-  .school-subtabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
-  .school-subtabs button{font-size:11px;padding:6px 10px;}
-  .school-subtabs button.active{background:var(--green)!important;color:#fff!important;}
+  .urgent-banner{background:linear-gradient(105deg,#dc2626 0%,#b91c1c 50%,#7f1d1d 100%);color:#fff;padding:14px 16px;border-radius:14px;margin-bottom:14px;font-weight:700;border:1px solid rgba(255,255,255,.2);box-shadow:0 8px 24px rgba(220,38,38,.25);animation:urgentPulse 1.8s infinite;}
+  @keyframes urgentPulse{0%,100%{transform:translateY(0);}50%{transform:translateY(-1px);}}
+  .school-hero{background:linear-gradient(135deg,rgba(255,77,141,.12),rgba(255,182,193,.08));border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:14px;}
+  .school-hero h2{margin:0 0 4px;font-size:18px;}
+  .school-hero p{margin:0;font-size:12px;color:var(--text-dim);}
+  .school-subtabs{display:flex;flex-wrap:nowrap;gap:8px;margin-bottom:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
+  .school-subtabs button{font-size:12px;padding:10px 14px;border-radius:999px!important;flex:0 0 auto;border:1px solid var(--line)!important;background:var(--bg-card)!important;color:var(--text)!important;}
+  .school-subtabs button.active{background:linear-gradient(135deg,var(--green),#ff6b9d)!important;color:#fff!important;border-color:transparent!important;box-shadow:0 4px 14px rgba(255,77,141,.3);}
+  .school-card{background:var(--bg-panel);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);}
+  .school-card .sch-title{font-weight:700;font-size:15px;margin-bottom:6px;}
+  .school-card .sch-body{font-size:14px;line-height:1.45;white-space:pre-wrap;}
+  .school-card .sch-meta{margin-top:10px;font-size:11px;color:var(--text-dim);display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  .school-compose{background:var(--bg-card);border:1px dashed var(--line);border-radius:16px;padding:14px;margin-bottom:16px;}
+
   .video-feed{display:flex;flex-direction:column;gap:16px;max-width:480px;margin:0 auto;}
   .video-card{background:var(--bg-panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
   .video-card video{width:100%;display:block;background:#000;max-height:70vh;}
@@ -1781,16 +1790,20 @@
   
   
   <div class="view" id="view-school">
+    <div class="school-hero">
+      <h2>📚 Школа</h2>
+      <p>Домашка, новости, праздники и срочное — всё для класса в одном месте</p>
+    </div>
     <div id="schoolUrgentBox"></div>
     <div class="school-subtabs" id="schoolSubtabs">
-      <button class="btn btn-ghost active" data-sschool="hw">Домашка</button>
-      <button class="btn btn-ghost" data-sschool="news">Новости школы</button>
-      <button class="btn btn-ghost" data-sschool="holidays">Праздники</button>
-      <button class="btn btn-ghost" data-sschool="tea">Нехорошие вещи</button>
-      <button class="btn btn-ghost" data-sschool="modapp">Заявка на модерку</button>
-      <button class="btn btn-ghost" data-sschool="urgent">Срочные</button>
+      <button class="btn btn-ghost active" data-sschool="hw">📝 Домашка</button>
+      <button class="btn btn-ghost" data-sschool="news">🏫 Новости</button>
+      <button class="btn btn-ghost" data-sschool="holidays">🎉 Праздники</button>
+      <button class="btn btn-ghost" data-sschool="tea">🤫 Компромат</button>
+      <button class="btn btn-ghost" data-sschool="modapp">🛡️ Модерка</button>
+      <button class="btn btn-ghost" data-sschool="urgent">🚨 Срочные</button>
     </div>
-    <div class="panel"><div id="schoolContent"></div></div>
+    <div id="schoolContent"></div>
   </div>
   <div class="view" id="view-videos">
     <div class="panel">
@@ -10658,13 +10671,13 @@ function renderSchool(){
       <button class="btn" id="schPostBtn">Выложить</button>`;
   }
   const list=schoolPosts.filter(p=>p.kind===kind&&!p.hidden).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-  const items=list.length?list.map(p=>`<div class="order-item" style="margin-bottom:10px;">
-    <div style="font-weight:700;">${escapeHtml(p.title||'')}</div>
-    <div style="margin-top:4px;white-space:pre-wrap;">${escapeHtml(p.text||'')}</div>
-    <div class="id-label">${p.kind==='tea'?'аноним':escapeHtml(p.authorName||'')} ${p.date?('· '+escapeHtml(p.date)):''}
-    ${(isAdmin||p.authorId===loggedInCitizenId)?` · <span data-del-sch="${p.id}" style="cursor:pointer;color:var(--red);">удалить</span>`:''}</div>
-  </div>`).join(''):'<div class="empty-list">Пусто</div>';
-  box.innerHTML=`<h3 style="margin:0 0 10px;font-size:15px;">${titles[kind]||''}</h3>${form}<div style="margin-top:14px;">${items}</div>`;
+  const items=list.length?list.map(p=>`<div class="school-card">
+    <div class="sch-title">${escapeHtml(p.title||'Без названия')}</div>
+    <div class="sch-body">${escapeHtml(p.text||'')}</div>
+    <div class="sch-meta"><span>${p.kind==='tea'?'🕵️ аноним':escapeHtml(p.authorName||'')}</span>${p.date?`<span>📅 ${escapeHtml(p.date)}</span>`:''}
+    ${(isAdmin||p.authorId===loggedInCitizenId)?`<span data-del-sch="${p.id}" style="cursor:pointer;color:var(--red);">удалить</span>`:''}</div>
+  </div>`).join(''):'<div class="empty-list">Пока пусто — будь первым</div>';
+  box.innerHTML=`<div class="school-compose"><div style="font-weight:700;margin-bottom:8px;">${titles[kind]||''}</div>${form}</div><div>${items}</div>`;
   document.getElementById('schPostBtn')?.addEventListener('click',async()=>{
     if(!loggedInCitizenId && kind!=='tea') return showToast('ВОЙДИ');
     if((kind==='urgent'||kind==='school_news'||kind==='holiday')&&!official) return showToast('Только модеры/админ');
@@ -10691,6 +10704,13 @@ function renderSchool(){
 /* videos */
 let veRecorder=null, veChunks=[], veBlob=null, veStream=null, veRecording=false;
 function veMax(){ return (typeof MAX_FILE_BYTES==='number'?MAX_FILE_BYTES:700*1024); }
+function vePickMime(){
+  const types=['video/webm;codecs=vp8,opus','video/webm;codecs=vp8','video/webm','video/mp4'];
+  for(const t of types){
+    try{ if(window.MediaRecorder && MediaRecorder.isTypeSupported(t)) return t; }catch(e){}
+  }
+  return '';
+}
 function initVeSelects(){
   const em=document.getElementById('veEmoji');
   const ef=document.getElementById('veEffect');
@@ -10715,22 +10735,46 @@ function veOverlay(){
     prev.classList.toggle('portrait', o!=='landscape');
   }
 }
+function veSetStatus(t){ const el=document.getElementById('veStatus'); if(el) el.textContent=t; }
+function veCleanupStream(){
+  try{ veStream?.getTracks().forEach(t=>t.stop()); }catch(e){}
+  veStream=null;
+}
+function veStopRecording(){
+  if(!veRecorder) return;
+  try{
+    if(veRecorder.state==='recording'){
+      try{ veRecorder.requestData(); }catch(e){}
+      veRecorder.stop();
+    }
+  }catch(e){ console.error(e); veRecording=false; veSetStatus('Стоп с ошибкой'); }
+}
+async function blobToDataUrl(blob){
+  return await new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=()=>resolve(r.result);
+    r.onerror=()=>reject(r.error||new Error('read fail'));
+    r.readAsDataURL(blob);
+  });
+}
 ['veText','veTextColor','veEmoji','veEffect','veMaskSel','veOrient'].forEach(id=>{
   document.getElementById(id)?.addEventListener('input', veOverlay);
   document.getElementById(id)?.addEventListener('change', veOverlay);
 });
 document.getElementById('vidOpenEditorBtn')?.addEventListener('click',()=>{
   if(!loggedInCitizenId) return showToast('ВОЙДИ');
-  initVeSelects(); veBlob=null;
-  document.getElementById('veStatus').textContent='Готов';
-  document.getElementById('videoEditorModal').classList.add('show');
+  initVeSelects(); veBlob=null; veChunks=[];
+  const live=document.getElementById('veLive');
+  if(live){ live.removeAttribute('src'); live.srcObject=null; live.controls=false; live.muted=true; }
+  veSetStatus('Готов — нажми «Запись» или выбери файл');
+  document.getElementById('videoEditorModal')?.classList.add('show');
 });
 document.getElementById('vidChannelBtn')?.addEventListener('click',()=>{
   if(!loggedInCitizenId) return showToast('ВОЙДИ');
   const me=citizens.find(c=>c.id===loggedInCitizenId);
   document.getElementById('chName').value=me?.channelName||me?.nickname||me?.name||'';
   document.getElementById('chAvatar').value=me?.channelAvatar||me?.avatarUrl||'';
-  document.getElementById('channelModal').classList.add('show');
+  document.getElementById('channelModal')?.classList.add('show');
 });
 document.getElementById('chSaveBtn')?.addEventListener('click',async()=>{
   const me=citizens.find(c=>c.id===loggedInCitizenId); if(!me) return;
@@ -10739,60 +10783,99 @@ document.getElementById('chSaveBtn')?.addEventListener('click',async()=>{
   try{
     await updateDoc(doc(db,'citizens',me.id),{channelName,channelAvatar});
     me.channelName=channelName; me.channelAvatar=channelAvatar;
-    document.getElementById('channelModal').classList.remove('show');
+    document.getElementById('channelModal')?.classList.remove('show');
     showToast('Канал сохранён');
   }catch(e){ showToast('Ошибка'); }
 });
 document.getElementById('veRecBtn')?.addEventListener('click',async()=>{
-  if(veRecording) return;
+  if(veRecording){ showToast('Уже идёт запись — жми Стоп'); return; }
+  if(!window.MediaRecorder){ showToast('Браузер не умеет запись видео'); return; }
   try{
-    const q=Number(document.getElementById('veQuality')?.value||360);
-    const h=Math.max(80,q);
+    veCleanupStream();
+    const q=Number(document.getElementById('veQuality')?.value||240);
+    const h=Math.max(80, Math.min(360, q));
     const portrait=(document.getElementById('veOrient')?.value||'portrait')==='portrait';
     const w=portrait?Math.round(h*9/16):Math.round(h*16/9);
-    veStream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:w},height:{ideal:h},facingMode:'user'},audio:!!document.getElementById('veSound')?.checked});
-    const live=document.getElementById('veLive'); live.srcObject=veStream; await live.play();
+    const wantAudio=!!document.getElementById('veSound')?.checked;
+    veSetStatus('Запрос камеры...');
+    try{
+      veStream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:w},height:{ideal:h},facingMode:'user'},audio:wantAudio});
+    }catch(e1){
+      // fallback simpler constraints
+      veStream=await navigator.mediaDevices.getUserMedia({video:true,audio:wantAudio});
+    }
+    const live=document.getElementById('veLive');
+    live.srcObject=veStream; live.muted=true; live.controls=false;
+    try{ await live.play(); }catch(e){}
     veChunks=[];
-    const mime=MediaRecorder.isTypeSupported('video/webm;codecs=vp8')?'video/webm;codecs=vp8':'video/webm';
-    veRecorder=new MediaRecorder(veStream,{mimeType:mime,videoBitsPerSecond:120000});
-    veRecorder.ondataavailable=e=>{
-      if(e.data&&e.data.size){
+    const mime=vePickMime();
+    const opts={ videoBitsPerSecond: 90000 };
+    if(mime) opts.mimeType=mime;
+    try{ veRecorder=new MediaRecorder(veStream, opts); }
+    catch(e){ veRecorder=new MediaRecorder(veStream); }
+    veRecorder.ondataavailable=(e)=>{
+      if(e.data && e.data.size>0){
         veChunks.push(e.data);
         const total=veChunks.reduce((a,b)=>a+b.size,0);
-        document.getElementById('veStatus').textContent='Запись... '+Math.round(total/1024)+'КБ';
-        if(total>veMax()) try{veRecorder.stop();}catch(err){}
+        veSetStatus('Запись... '+Math.round(total/1024)+' КБ / '+Math.round(veMax()/1024)+' КБ');
+        if(total>=veMax()) veStopRecording();
       }
     };
+    veRecorder.onerror=(e)=>{ console.error(e); veSetStatus('Ошибка записи'); veRecording=false; };
     veRecorder.onstop=()=>{
       veRecording=false;
-      veStream?.getTracks().forEach(t=>t.stop());
-      veBlob=new Blob(veChunks,{type:'video/webm'});
-      if(veBlob.size>veMax()){ document.getElementById('veStatus').textContent='Слишком тяжёлое — снизь качество'; veBlob=null; return; }
+      veCleanupStream();
+      if(!veChunks.length){ veSetStatus('Пустая запись — попробуй ещё'); veBlob=null; return; }
+      const type=(veRecorder&&veRecorder.mimeType)||mime||'video/webm';
+      veBlob=new Blob(veChunks,{type});
+      if(veBlob.size>veMax()){ veSetStatus('Файл слишком большой ('+Math.round(veBlob.size/1024)+'КБ). Сними короче / 80p'); veBlob=null; return; }
       const live=document.getElementById('veLive');
-      live.srcObject=null; live.src=URL.createObjectURL(veBlob); live.controls=true; live.muted=false;
-      document.getElementById('veStatus').textContent='Готово '+Math.round(veBlob.size/1024)+'КБ';
+      live.srcObject=null;
+      live.src=URL.createObjectURL(veBlob);
+      live.controls=true; live.muted=false;
+      try{ live.play(); }catch(e){}
+      veSetStatus('Готово '+Math.round(veBlob.size/1024)+' КБ — можно публиковать');
+      const rb=document.getElementById('veRecBtn'); if(rb) rb.textContent='⏺ Запись';
     };
-    veRecording=true; veRecorder.start(200);
-    document.getElementById('veStatus').textContent='Идёт запись...';
-  }catch(e){ showToast('Нет камеры'); console.error(e); }
+    veRecording=true;
+    try{ veRecorder.start(250); }catch(e){ veRecorder.start(); }
+    const rb=document.getElementById('veRecBtn'); if(rb) rb.textContent='⏺ Идёт...';
+    veSetStatus('Идёт запись — жми Стоп');
+  }catch(e){
+    console.error(e);
+    veRecording=false;
+    showToast('Нет доступа к камере/микрофону');
+    veSetStatus('Камера недоступна');
+  }
 });
-document.getElementById('veStopBtn')?.addEventListener('click',()=>{ if(veRecorder&&veRecording) veRecorder.stop(); });
-document.getElementById('veUploadBtn')?.addEventListener('click',()=>document.getElementById('veFileInput').click());
+document.getElementById('veStopBtn')?.addEventListener('click',()=>{
+  if(!veRecording || !veRecorder){ showToast('Сейчас ничего не пишется'); return; }
+  veSetStatus('Останавливаю...');
+  veStopRecording();
+});
+document.getElementById('veUploadBtn')?.addEventListener('click',()=>document.getElementById('veFileInput')?.click());
 document.getElementById('veFileInput')?.addEventListener('change',e=>{
-  const f=e.target.files?.[0]; if(!f) return;
-  if(f.size>veMax()) return showToast('Файл больше лимита');
+  const f=e.target.files&&e.target.files[0]; if(!f) return;
+  if(f.size>veMax()){ showToast('Файл больше '+Math.round(veMax()/1024)+' КБ'); return; }
   veBlob=f;
-  const live=document.getElementById('veLive'); live.srcObject=null; live.src=URL.createObjectURL(f); live.controls=true;
-  document.getElementById('veStatus').textContent='Файл '+Math.round(f.size/1024)+'КБ';
+  const live=document.getElementById('veLive');
+  live.srcObject=null; live.src=URL.createObjectURL(f); live.controls=true; live.muted=false;
+  veSetStatus('Файл '+Math.round(f.size/1024)+' КБ — можно публиковать');
 });
 document.getElementById('vePublishBtn')?.addEventListener('click',async()=>{
   if(!loggedInCitizenId) return showToast('ВОЙДИ');
-  if(!veBlob) return showToast('Нет видео');
+  if(veRecording){ showToast('Сначала останови запись'); return; }
+  if(!veBlob || !veBlob.size){ showToast('Нет видео — запиши или загрузи файл'); return; }
   if(veBlob.size>veMax()) return showToast('Слишком большой файл');
   const me=citizens.find(c=>c.id===loggedInCitizenId);
-  document.getElementById('veStatus').textContent='Публикация...';
+  if(!me) return showToast('ВОЙДИ');
+  veSetStatus('Публикация...');
+  const btn=document.getElementById('vePublishBtn');
+  if(btn) btn.disabled=true;
   try{
-    const dataUrl=await fileToDataUrl(veBlob);
+    const dataUrl=await blobToDataUrl(veBlob);
+    // Firestore doc limit ~1MB; keep margin
+    if(dataUrl.length > 900000){ showToast('После кодирования слишком большое — сними короче'); veSetStatus('Слишком большое'); return; }
     const id=uid('vid');
     await setDoc(doc(db,'videos',id),{
       id,
@@ -10809,10 +10892,20 @@ document.getElementById('vePublishBtn')?.addEventListener('click',async()=>{
       authorAvatar:me.channelAvatar||me.avatarUrl||'',
       likes:[], likesCount:0, createdAt:Date.now()
     });
-    document.getElementById('videoEditorModal').classList.remove('show');
-    showToast('Опубликовано'); sounds.success();
-  }catch(e){ showToast('Ошибка (лимит/Rules)'); console.error(e); }
+    document.getElementById('videoEditorModal')?.classList.remove('show');
+    showToast('Видео опубликовано');
+    try{ sounds.success(); }catch(e){}
+    veBlob=null; veChunks=[];
+    renderVideoFeed();
+  }catch(e){
+    console.error(e);
+    showToast('Ошибка публикации: '+(e.code||e.message||'unknown'));
+    veSetStatus('Ошибка публикации');
+  }finally{
+    if(btn) btn.disabled=false;
+  }
 });
+
 document.getElementById('vidSearch')?.addEventListener('input',()=>renderVideoFeed());
 document.getElementById('vidFilters')?.addEventListener('click',e=>{
   const b=e.target.closest('[data-vfilter]'); if(!b) return;
