@@ -204,6 +204,14 @@
   .school-card .sch-meta{margin-top:10px;font-size:11px;color:var(--text-dim);display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
   .school-compose{background:var(--bg-card);border:1px dashed var(--line);border-radius:16px;padding:14px;margin-bottom:16px;}
 
+  
+  .shorts-icon{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#ff2d55,#ff6b9d);color:#fff;font-size:14px;box-shadow:0 4px 12px rgba(255,45,85,.35);}
+  .video-feed.shorts-mode{max-width:420px;}
+  .video-feed.shorts-mode .video-card.portrait{border-radius:18px;}
+  .video-feed.shorts-mode .video-card.portrait video{max-height:78vh;background:#000;min-height:50vh;}
+  .vid-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center;}
+  video.vid-el{width:100%;background:#000;display:block;}
+
   .video-feed{display:flex;flex-direction:column;gap:16px;max-width:480px;margin:0 auto;}
   .video-card{background:var(--bg-panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
   .video-card video{width:100%;display:block;background:#000;max-height:70vh;}
@@ -1807,16 +1815,20 @@
   </div>
   <div class="view" id="view-videos">
     <div class="panel">
-      <div class="panel-title"><span>Видосики</span>
+      <div class="panel-title"><span style="display:flex;align-items:center;gap:8px;"><span class="shorts-icon">▶</span> Видосики</span>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn" id="vidOpenEditorBtn" style="font-size:11px;padding:6px 10px;">+ Снять / загрузить</button>
           <button class="btn btn-ghost" id="vidChannelBtn" style="font-size:11px;padding:6px 10px;">Мой канал</button>
         </div>
       </div>
+      <div class="vid-toolbar">
+        <button class="btn" id="vidShortsFeedBtn" style="font-size:12px;padding:8px 12px;display:inline-flex;align-items:center;gap:6px;"><span class="shorts-icon" style="width:22px;height:22px;font-size:11px;">S</span> Лента шортсов</button>
+        <button class="btn btn-ghost" id="vidNormalFeedBtn" style="font-size:12px;padding:8px 12px;">Все видео</button>
+      </div>
       <input id="vidSearch" placeholder="Поиск видео..." style="width:100%;margin-bottom:10px;">
       <div class="school-subtabs" id="vidFilters">
         <button class="btn btn-ghost active" data-vfilter="all">Все</button>
-        <button class="btn btn-ghost" data-vfilter="short">9:16</button>
+        <button class="btn btn-ghost" data-vfilter="short">9:16 шортс</button>
         <button class="btn btn-ghost" data-vfilter="wide">16:9</button>
       </div>
       <div id="videoFeed" class="video-feed"></div>
@@ -10873,7 +10885,9 @@ document.getElementById('vePublishBtn')?.addEventListener('click',async()=>{
   const btn=document.getElementById('vePublishBtn');
   if(btn) btn.disabled=true;
   try{
-    const dataUrl=await blobToDataUrl(veBlob);
+    let dataUrl=await blobToDataUrl(veBlob);
+    const mimeType=(veBlob.type && veBlob.type.startsWith('video/')) ? veBlob.type : detectVideoMime(dataUrl, 'video/webm');
+    dataUrl=fixVideoDataUrl(dataUrl, mimeType);
     // Firestore doc limit ~1MB; keep margin
     if(dataUrl.length > 900000){ showToast('После кодирования слишком большое — сними короче'); veSetStatus('Слишком большое'); return; }
     const id=uid('vid');
@@ -10883,6 +10897,7 @@ document.getElementById('vePublishBtn')?.addEventListener('click',async()=>{
       desc:(document.getElementById('veDesc').value||'').trim(),
       orient:document.getElementById('veOrient').value||'portrait',
       dataUrl,
+      mimeType,
       overlayText:((document.getElementById('veText')?.value||'')+(document.getElementById('veEmoji')?.value||'')).trim(),
       overlayColor:document.getElementById('veTextColor')?.value||'#fff',
       effect:document.getElementById('veEffect')?.value||'',
@@ -10907,19 +10922,68 @@ document.getElementById('vePublishBtn')?.addEventListener('click',async()=>{
 });
 
 document.getElementById('vidSearch')?.addEventListener('input',()=>renderVideoFeed());
+document.getElementById('vidShortsFeedBtn')?.addEventListener('click',()=>{
+  shortsMode=true; videoFilter='short';
+  document.querySelectorAll('#vidFilters button').forEach(x=>x.classList.toggle('active', x.dataset.vfilter==='short'));
+  renderVideoFeed();
+  showToast('Лента шортсов 🎲');
+});
+document.getElementById('vidNormalFeedBtn')?.addEventListener('click',()=>{
+  shortsMode=false; videoFilter='all';
+  document.querySelectorAll('#vidFilters button').forEach(x=>x.classList.toggle('active', x.dataset.vfilter==='all'));
+  renderVideoFeed();
+});
+
 document.getElementById('vidFilters')?.addEventListener('click',e=>{
   const b=e.target.closest('[data-vfilter]'); if(!b) return;
   videoFilter=b.dataset.vfilter;
   document.querySelectorAll('#vidFilters button').forEach(x=>x.classList.toggle('active',x===b));
   renderVideoFeed();
 });
+
+function detectVideoMime(dataUrl, fallback){
+  if(fallback && String(fallback).startsWith('video/')) return fallback;
+  if(!dataUrl || typeof dataUrl!=='string') return 'video/webm';
+  const m=dataUrl.match(/^data:([^;,]+)/);
+  if(m && m[1] && m[1]!=='application/octet-stream') return m[1];
+  return 'video/webm';
+}
+function fixVideoDataUrl(dataUrl, mime){
+  if(!dataUrl || typeof dataUrl!=='string') return dataUrl;
+  mime=detectVideoMime(dataUrl, mime);
+  if(dataUrl.startsWith('data:')){
+    return dataUrl.replace(/^data:[^;,]*/, 'data:'+mime);
+  }
+  return dataUrl;
+}
+function videoPlayerHtml(v){
+  const mime=detectVideoMime(v.dataUrl, v.mimeType);
+  const src=fixVideoDataUrl(v.dataUrl, mime);
+  const fx=VE_EFFECT_CSS[v.effect]||'';
+  if(!src) return `<div class="id-label" style="padding:24px;text-align:center;">Нет файла видео</div>`;
+  return `<video class="vid-el" controls playsinline preload="auto" style="filter:${fx}">
+    <source src="${src}" type="${mime}">
+    <source src="${src}" type="video/webm">
+    <source src="${src}" type="video/mp4">
+    Ваш браузер не поддерживает это видео (${mime}).
+  </video>`;
+}
+let shortsMode=false;
+
 function renderVideoFeed(){
   const box=document.getElementById('videoFeed'); if(!box) return;
   const q=(document.getElementById('vidSearch')?.value||'').trim().toLowerCase();
-  let list=videosCache.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-  if(videoFilter==='short') list=list.filter(v=>v.orient==='portrait');
-  if(videoFilter==='wide') list=list.filter(v=>v.orient==='landscape');
+  let list=videosCache.slice();
+  if(shortsMode){
+    list=list.filter(v=>v.orient==='portrait'||!v.orient);
+    for(let i=list.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=list[i]; list[i]=list[j]; list[j]=t; }
+  } else {
+    list.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    if(videoFilter==='short') list=list.filter(v=>v.orient==='portrait');
+    if(videoFilter==='wide') list=list.filter(v=>v.orient==='landscape');
+  }
   if(q) list=list.filter(v=>((v.title||'')+(v.desc||'')+(v.authorName||'')).toLowerCase().includes(q));
+  box.classList.toggle('shorts-mode', !!shortsMode);
   if(!list.length){ box.innerHTML='<div class="empty-list">Видео нет</div>'; return; }
   box.innerHTML=list.map(v=>{
     const liked=loggedInCitizenId&&(v.likes||[]).includes(loggedInCitizenId);
@@ -10927,7 +10991,8 @@ function renderVideoFeed(){
     const mask=VE_MASKS[v.mask]||'';
     return `<div class="video-card ${v.orient==='portrait'?'portrait':''}">
       <div style="position:relative;">
-        <video src="${v.dataUrl||''}" controls playsinline preload="metadata" style="filter:${fx}"></video>
+        ${v.orient==='portrait'?`<div style="position:absolute;top:10px;left:10px;z-index:2;"><span class="shorts-icon" title="Шортс">S</span></div>`:''}
+        ${videoPlayerHtml(v)}
         ${mask?`<div style="position:absolute;inset:0;pointer-events:none;background:${mask};opacity:.5;"></div>`:''}
         ${v.overlayText?`<div style="position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);color:${escapeHtml(v.overlayColor||'#fff')};font-weight:800;text-shadow:0 2px 4px #000;text-align:center;max-width:90%;pointer-events:none;">${escapeHtml(v.overlayText)}</div>`:''}
       </div>
