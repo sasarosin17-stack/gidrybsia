@@ -1828,8 +1828,8 @@
         </div>
       </div>
       <div class="vid-toolbar">
-        <button class="btn" id="vidShortsFeedBtn" style="font-size:12px;padding:8px 12px;display:inline-flex;align-items:center;gap:6px;"><span class="shorts-icon" style="width:22px;height:22px;font-size:11px;">S</span> Лента шортсов</button>
-        <button class="btn btn-ghost" id="vidNormalFeedBtn" style="font-size:12px;padding:8px 12px;">Все видео</button>
+        <button class="btn" id="vidShortsFeedBtn" data-vid-action="shorts" style="font-size:12px;padding:8px 12px;display:inline-flex;align-items:center;gap:6px;"><span class="shorts-icon" style="width:22px;height:22px;font-size:11px;">S</span> Лента шортсов</button>
+        <button class="btn btn-ghost" id="vidNormalFeedBtn" data-vid-action="all" style="font-size:12px;padding:8px 12px;">Все видео</button>
       </div>
       <input id="vidSearch" placeholder="Поиск видео..." style="width:100%;margin-bottom:10px;">
       <div class="school-subtabs" id="vidFilters">
@@ -2472,7 +2472,7 @@
     <div class="form-group"><label>Эффект</label><select id="veEffect"><option value="">Нет</option></select></div>
     <div class="form-group"><label>Маска</label><select id="veMaskSel"><option value="">Нет</option></select></div>
     <div class="form-group"><label>Или ссылка (YouTube / TikTok / Catbox)</label>
-      <input id="veLink" placeholder="https://youtu.be/... или tiktok.com/... или files.catbox.moe/..." style="width:100%;">
+      <input id="veLink" placeholder="YouTube / TikTok / Catbox / file.garden/..." style="width:100%;">
     </div>
     <div class="form-group"><label>Название</label><input id="veTitle" maxlength="80"></div>
     <div class="form-group"><label>Описание</label><textarea id="veDesc" rows="2"></textarea></div>
@@ -10928,7 +10928,7 @@ document.getElementById('vePublishBtn')?.addEventListener('click',async()=>{
   if(veRecording || veStopping){ showToast('Сначала останови запись'); return; }
   const linkRaw=(document.getElementById('veLink')?.value||'').trim();
   const parsed=linkRaw?parseExternalVideoUrl(linkRaw):null;
-  if(linkRaw && !parsed){ showToast('Ссылка не распознана (YouTube / TikTok / Catbox)'); return; }
+  if(linkRaw && !parsed){ showToast('Ссылка не распознана (YouTube / TikTok / Catbox / File Garden)'); return; }
   if(!parsed && (!veBlob || !veBlob.size)){ showToast('Нет видео и нет ссылки'); return; }
   if(veBlob && veBlob.size>veMax()) return showToast('Файл слишком большой');
   const me=citizens.find(c=>c.id===loggedInCitizenId);
@@ -10959,7 +10959,7 @@ document.getElementById('vePublishBtn')?.addEventListener('click',async()=>{
       base.embedUrl = parsed.embedUrl || '';
       base.directUrl = parsed.directUrl || '';
       base.dataUrl = '';
-      base.mimeType = parsed.provider==='catbox'||parsed.provider==='direct' ? 'video/mp4' : 'text/html';
+      base.mimeType = (parsed.provider==='catbox'||parsed.provider==='direct'||parsed.provider==='filegarden') ? 'video/mp4' : 'text/html';
     } else {
       let dataUrl=await blobToDataUrl(veBlob);
       let mimeType=(veBlob.type && veBlob.type.indexOf('video/')===0) ? veBlob.type.split(';')[0] : 'video/webm';
@@ -11036,6 +11036,13 @@ function parseExternalVideoUrl(raw){
     if(!/\.(mp4|webm|mov|mkv|avi)(\?|$)/i.test(path) && host==='catbox.moe') return null;
     return { provider:'catbox', id:path, pageUrl:url, directUrl:url, orient:'landscape' };
   }
+  // File Garden
+  if(host==='file.garden' || host.endsWith('.file.garden') || host==='filegarden.com' || host.endsWith('.filegarden.com')){
+    const path=u.pathname||'';
+    // direct media or share page — use URL as video src when extension looks like video
+    const isVid=/\.(mp4|webm|mov|mkv|m4v|avi)(\?|$)/i.test(path) || /\/(video|raw|download)\//i.test(path);
+    return { provider:'filegarden', id:path, pageUrl:url, directUrl:url, orient:'landscape', note:isVid?'':'may-need-direct' };
+  }
   // generic direct video link
   if(/\.(mp4|webm|mov)(\?|$)/i.test(u.pathname||'')){
     return { provider:'direct', id:url, pageUrl:url, directUrl:url, orient:'landscape' };
@@ -11058,9 +11065,10 @@ function videoPlayerHtml(v){
       }
       return `<div style="padding:20px;text-align:center;background:#111;color:#fff;"><a href="${escapeHtml(v.linkUrl||emb)}" target="_blank" rel="noopener" style="color:#0ff;">Открыть в TikTok</a></div>`;
     }
-    if((prov==='catbox'||prov==='direct') && (v.directUrl||v.linkUrl)){
+    if((prov==='catbox'||prov==='direct'||prov==='filegarden') && (v.directUrl||v.linkUrl)){
       const src=v.directUrl||v.linkUrl;
-      return `<video class="vid-el" controls playsinline preload="metadata" style="filter:${fx}" src="${escapeHtml(src)}"></video>`;
+      return `<video class="vid-el" controls playsinline preload="metadata" style="filter:${fx}" src="${escapeHtml(src)}"></video>
+      <div class="id-label" style="padding:6px 10px;">${prov==='filegarden'?'File Garden':'Ссылка'} · <a href="${escapeHtml(v.linkUrl||src)}" target="_blank" rel="noopener">открыть</a></div>`;
     }
   }
   let src=v.dataUrl||'';
@@ -11081,6 +11089,46 @@ function videoPlayerHtml(v){
 }
 let shortsMode=false;
 
+
+document.getElementById('vidShortsFeedBtn')?.addEventListener('click', (e)=>{
+  e.preventDefault(); e.stopPropagation();
+  shortsMode = true;
+  videoFilter = 'short';
+  document.querySelectorAll('#vidFilters button').forEach(x=>x.classList.toggle('active', x.dataset.vfilter==='short'));
+  try{ renderVideoFeed(); showToast('Лента шортсов 🎲'); }catch(err){ console.error(err); showToast('Ошибка ленты'); }
+});
+document.getElementById('vidNormalFeedBtn')?.addEventListener('click', (e)=>{
+  e.preventDefault(); e.stopPropagation();
+  shortsMode = false;
+  videoFilter = 'all';
+  document.querySelectorAll('#vidFilters button').forEach(x=>x.classList.toggle('active', x.dataset.vfilter==='all'));
+  try{ renderVideoFeed(); showToast('Все видео'); }catch(err){ console.error(err); }
+});
+document.getElementById('vidSearch')?.addEventListener('input', ()=>{ try{ renderVideoFeed(); }catch(e){} });
+document.getElementById('vidFilters')?.addEventListener('click', (e)=>{
+  const b=e.target.closest('[data-vfilter]');
+  if(!b) return;
+  e.preventDefault();
+  shortsMode = false;
+  videoFilter = b.dataset.vfilter || 'all';
+  document.querySelectorAll('#vidFilters button').forEach(x=>x.classList.toggle('active', x===b));
+  try{ renderVideoFeed(); }catch(err){ console.error(err); }
+});
+
+document.addEventListener('click', function vidActionDelegate(e){
+  const a=e.target.closest('[data-vid-action]');
+  if(!a) return;
+  const act=a.getAttribute('data-vid-action');
+  if(act==='shorts'){
+    shortsMode=true; videoFilter='short';
+    document.querySelectorAll('#vidFilters button').forEach(x=>x.classList.toggle('active', x.dataset.vfilter==='short'));
+    try{ renderVideoFeed(); showToast('Лента шортсов 🎲'); }catch(err){ console.error(err); }
+  } else if(act==='all'){
+    shortsMode=false; videoFilter='all';
+    document.querySelectorAll('#vidFilters button').forEach(x=>x.classList.toggle('active', x.dataset.vfilter==='all'));
+    try{ renderVideoFeed(); showToast('Все видео'); }catch(err){ console.error(err); }
+  }
+});
 function renderVideoFeed(){
   const box=document.getElementById('videoFeed'); if(!box) return;
   const q=(document.getElementById('vidSearch')?.value||'').trim().toLowerCase();
