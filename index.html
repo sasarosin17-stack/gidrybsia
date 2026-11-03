@@ -210,7 +210,13 @@
   .video-feed.shorts-mode .video-card.portrait{border-radius:18px;}
   .video-feed.shorts-mode .video-card.portrait video{max-height:78vh;background:#000;min-height:50vh;}
   .vid-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center;}
-  video.vid-el{width:100%;background:#000;display:block;}
+  video
+  .vid-embed{position:relative;width:100%;background:#000;aspect-ratio:16/9;}
+  .vid-embed.portrait{aspect-ratio:9/16;max-height:78vh;margin:0 auto;}
+  .vid-embed iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+  .vid-embed video{width:100%;height:100%;max-height:78vh;background:#000;}
+
+  .vid-el{width:100%;background:#000;display:block;}
 
   .video-feed{display:flex;flex-direction:column;gap:16px;max-width:480px;margin:0 auto;}
   .video-card{background:var(--bg-panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
@@ -2465,6 +2471,9 @@
     <div class="form-group"><label>Смайлик</label><select id="veEmoji"><option value="">—</option></select></div>
     <div class="form-group"><label>Эффект</label><select id="veEffect"><option value="">Нет</option></select></div>
     <div class="form-group"><label>Маска</label><select id="veMaskSel"><option value="">Нет</option></select></div>
+    <div class="form-group"><label>Или ссылка (YouTube / TikTok / Catbox)</label>
+      <input id="veLink" placeholder="https://youtu.be/... или tiktok.com/... или files.catbox.moe/..." style="width:100%;">
+    </div>
     <div class="form-group"><label>Название</label><input id="veTitle" maxlength="80"></div>
     <div class="form-group"><label>Описание</label><textarea id="veDesc" rows="2"></textarea></div>
     <div class="id-label" id="veStatus">Готов</div>
@@ -10714,12 +10723,13 @@ function renderSchool(){
 }
 
 /* videos */
-let veRecorder=null, veChunks=[], veBlob=null, veStream=null, veRecording=false;
-function veMax(){ return (typeof MAX_FILE_BYTES==='number'?MAX_FILE_BYTES:700*1024); }
+let veRecorder=null, veChunks=[], veBlob=null, veStream=null, veRecording=false, veStopping=false;
+function veMax(){ return Math.min((typeof MAX_FILE_BYTES==='number'?MAX_FILE_BYTES:700*1024), 700*1024); }
 function vePickMime(){
-  const types=['video/webm;codecs=vp8,opus','video/webm;codecs=vp8','video/webm','video/mp4'];
+  if(!window.MediaRecorder) return '';
+  const types=['video/webm;codecs=vp8','video/webm','video/mp4'];
   for(const t of types){
-    try{ if(window.MediaRecorder && MediaRecorder.isTypeSupported(t)) return t; }catch(e){}
+    try{ if(MediaRecorder.isTypeSupported(t)) return t; }catch(e){}
   }
   return '';
 }
@@ -10749,25 +10759,73 @@ function veOverlay(){
 }
 function veSetStatus(t){ const el=document.getElementById('veStatus'); if(el) el.textContent=t; }
 function veCleanupStream(){
-  try{ veStream?.getTracks().forEach(t=>t.stop()); }catch(e){}
+  try{ veStream?.getTracks().forEach(t=>{ try{t.stop();}catch(e){} }); }catch(e){}
   veStream=null;
 }
-function veStopRecording(){
-  if(!veRecorder) return;
-  try{
-    if(veRecorder.state==='recording'){
-      try{ veRecorder.requestData(); }catch(e){}
-      veRecorder.stop();
-    }
-  }catch(e){ console.error(e); veRecording=false; veSetStatus('Стоп с ошибкой'); }
-}
-async function blobToDataUrl(blob){
-  return await new Promise((resolve,reject)=>{
+function blobToDataUrl(blob){
+  return new Promise((resolve,reject)=>{
     const r=new FileReader();
     r.onload=()=>resolve(r.result);
-    r.onerror=()=>reject(r.error||new Error('read fail'));
+    r.onerror=()=>reject(r.error||new Error('FileReader'));
     r.readAsDataURL(blob);
   });
+}
+function finishRecordingBlob(){
+  veRecording=false;
+  veStopping=false;
+  veCleanupStream();
+  const rb=document.getElementById('veRecBtn'); if(rb){ rb.disabled=false; rb.textContent='⏺ Запись'; }
+  const sb=document.getElementById('veStopBtn'); if(sb) sb.disabled=false;
+  if(!veChunks.length){ veBlob=null; veSetStatus('Пустая запись — попробуй снова'); return; }
+  let type='video/webm';
+  try{ if(veRecorder && veRecorder.mimeType) type=veRecorder.mimeType.split(';')[0]; }catch(e){}
+  if(!type.startsWith('video/')) type='video/webm';
+  veBlob=new Blob(veChunks, { type });
+  if(veBlob.size < 500){ veBlob=null; veSetStatus('Слишком короткая запись'); return; }
+  if(veBlob.size > veMax()){ veBlob=null; veSetStatus('Больше лимита '+Math.round(veMax()/1024)+'КБ — сними короче / 80p'); return; }
+  const live=document.getElementById('veLive');
+  if(live){
+    try{ if(live.src && live.src.startsWith('blob:')) URL.revokeObjectURL(live.src); }catch(e){}
+    live.srcObject=null;
+    live.src=URL.createObjectURL(veBlob);
+    live.controls=true;
+    live.muted=false;
+    live.load();
+  }
+  veSetStatus('Готово '+Math.round(veBlob.size/1024)+' КБ · '+type+' — можно публиковать');
+}
+function veStopRecording(){
+  if(veStopping) return;
+  if(!veRecorder){ veRecording=false; veSetStatus('Рекордер не активен'); return; }
+  veStopping=true;
+  veSetStatus('Останавливаю...');
+  const rec=veRecorder;
+  const hardTimeout=setTimeout(()=>{
+    if(veStopping){ console.warn('force finish'); finishRecordingBlob(); }
+  }, 2500);
+  const prevOnStop=rec.onstop;
+  rec.onstop=()=>{
+    clearTimeout(hardTimeout);
+    try{ if(typeof prevOnStop==='function') prevOnStop(); }catch(e){}
+    finishRecordingBlob();
+  };
+  try{
+    if(rec.state==='recording'){
+      try{ rec.requestData(); }catch(e){}
+      rec.stop();
+    } else if(rec.state==='paused'){
+      try{ rec.resume(); }catch(e){}
+      try{ rec.requestData(); }catch(e){}
+      try{ rec.stop(); }catch(e){ finishRecordingBlob(); }
+    } else {
+      clearTimeout(hardTimeout);
+      finishRecordingBlob();
+    }
+  }catch(e){
+    console.error(e);
+    clearTimeout(hardTimeout);
+    finishRecordingBlob();
+  }
 }
 ['veText','veTextColor','veEmoji','veEffect','veMaskSel','veOrient'].forEach(id=>{
   document.getElementById(id)?.addEventListener('input', veOverlay);
@@ -10775,10 +10833,12 @@ async function blobToDataUrl(blob){
 });
 document.getElementById('vidOpenEditorBtn')?.addEventListener('click',()=>{
   if(!loggedInCitizenId) return showToast('ВОЙДИ');
-  initVeSelects(); veBlob=null; veChunks=[];
+  initVeSelects();
+  if(veRecording) veStopRecording();
+  veBlob=null; veChunks=[]; veStopping=false;
   const live=document.getElementById('veLive');
-  if(live){ live.removeAttribute('src'); live.srcObject=null; live.controls=false; live.muted=true; }
-  veSetStatus('Готов — нажми «Запись» или выбери файл');
+  if(live){ try{ live.pause(); }catch(e){} live.removeAttribute('src'); live.srcObject=null; live.controls=false; live.muted=true; }
+  veSetStatus('Готов — Запись или файл (лучше 80p–144p, 3–6 сек)');
   document.getElementById('videoEditorModal')?.classList.add('show');
 });
 document.getElementById('vidChannelBtn')?.addEventListener('click',()=>{
@@ -10800,104 +10860,89 @@ document.getElementById('chSaveBtn')?.addEventListener('click',async()=>{
   }catch(e){ showToast('Ошибка'); }
 });
 document.getElementById('veRecBtn')?.addEventListener('click',async()=>{
-  if(veRecording){ showToast('Уже идёт запись — жми Стоп'); return; }
-  if(!window.MediaRecorder){ showToast('Браузер не умеет запись видео'); return; }
+  if(veRecording){ veStopRecording(); return; }
+  if(!window.MediaRecorder){ showToast('Браузер не поддерживает запись'); return; }
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ showToast('Нет getUserMedia'); return; }
   try{
     veCleanupStream();
-    const q=Number(document.getElementById('veQuality')?.value||240);
+    veChunks=[]; veBlob=null; veStopping=false;
+    const q=Number(document.getElementById('veQuality')?.value||144);
     const h=Math.max(80, Math.min(360, q));
     const portrait=(document.getElementById('veOrient')?.value||'portrait')==='portrait';
-    const w=portrait?Math.round(h*9/16):Math.round(h*16/9);
+    const w=Math.max(80, portrait?Math.round(h*9/16):Math.round(h*16/9));
     const wantAudio=!!document.getElementById('veSound')?.checked;
-    veSetStatus('Запрос камеры...');
+    veSetStatus('Камера...');
     try{
-      veStream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:w},height:{ideal:h},facingMode:'user'},audio:wantAudio});
+      veStream=await navigator.mediaDevices.getUserMedia({
+        video:{ width:{ideal:w,max:w}, height:{ideal:h,max:h}, facingMode:'user', frameRate:{ideal:15,max:20} },
+        audio: wantAudio
+      });
     }catch(e1){
-      // fallback simpler constraints
-      veStream=await navigator.mediaDevices.getUserMedia({video:true,audio:wantAudio});
+      veStream=await navigator.mediaDevices.getUserMedia({ video:true, audio:wantAudio });
     }
     const live=document.getElementById('veLive');
     live.srcObject=veStream; live.muted=true; live.controls=false;
     try{ await live.play(); }catch(e){}
-    veChunks=[];
     const mime=vePickMime();
-    const opts={ videoBitsPerSecond: 90000 };
+    const opts={ videoBitsPerSecond: 60000, audioBitsPerSecond: 16000 };
     if(mime) opts.mimeType=mime;
     try{ veRecorder=new MediaRecorder(veStream, opts); }
-    catch(e){ veRecorder=new MediaRecorder(veStream); }
+    catch(e){ try{ veRecorder=new MediaRecorder(veStream, {mimeType:'video/webm'}); }catch(e2){ veRecorder=new MediaRecorder(veStream); } }
     veRecorder.ondataavailable=(e)=>{
       if(e.data && e.data.size>0){
         veChunks.push(e.data);
         const total=veChunks.reduce((a,b)=>a+b.size,0);
-        veSetStatus('Запись... '+Math.round(total/1024)+' КБ / '+Math.round(veMax()/1024)+' КБ');
-        if(total>=veMax()) veStopRecording();
+        veSetStatus('● REC '+Math.round(total/1024)+' / '+Math.round(veMax()/1024)+' КБ');
+        if(total>=veMax() && veRecording) veStopRecording();
       }
     };
-    veRecorder.onerror=(e)=>{ console.error(e); veSetStatus('Ошибка записи'); veRecording=false; };
-    veRecorder.onstop=()=>{
-      veRecording=false;
-      veCleanupStream();
-      if(!veChunks.length){ veSetStatus('Пустая запись — попробуй ещё'); veBlob=null; return; }
-      const type=(veRecorder&&veRecorder.mimeType)||mime||'video/webm';
-      veBlob=new Blob(veChunks,{type});
-      if(veBlob.size>veMax()){ veSetStatus('Файл слишком большой ('+Math.round(veBlob.size/1024)+'КБ). Сними короче / 80p'); veBlob=null; return; }
-      const live=document.getElementById('veLive');
-      live.srcObject=null;
-      live.src=URL.createObjectURL(veBlob);
-      live.controls=true; live.muted=false;
-      try{ live.play(); }catch(e){}
-      veSetStatus('Готово '+Math.round(veBlob.size/1024)+' КБ — можно публиковать');
-      const rb=document.getElementById('veRecBtn'); if(rb) rb.textContent='⏺ Запись';
-    };
+    veRecorder.onerror=(e)=>{ console.error('MediaRecorder', e); veSetStatus('Ошибка рекордера'); veRecording=false; veStopping=false; };
+    // onstop set in veStopRecording to avoid double
+    veRecorder.onstop=()=>{ finishRecordingBlob(); };
     veRecording=true;
-    try{ veRecorder.start(250); }catch(e){ veRecorder.start(); }
-    const rb=document.getElementById('veRecBtn'); if(rb) rb.textContent='⏺ Идёт...';
-    veSetStatus('Идёт запись — жми Стоп');
+    try{ veRecorder.start(200); }catch(e){ veRecorder.start(); }
+    const rb=document.getElementById('veRecBtn'); if(rb) rb.textContent='⏹ Стоп';
+    veSetStatus('● Запись... нажми Стоп или снова «Запись»');
   }catch(e){
     console.error(e);
     veRecording=false;
-    showToast('Нет доступа к камере/микрофону');
-    veSetStatus('Камера недоступна');
+    showToast('Камера/мик недоступны');
+    veSetStatus('Нет камеры: '+(e.message||''));
   }
 });
 document.getElementById('veStopBtn')?.addEventListener('click',()=>{
-  if(!veRecording || !veRecorder){ showToast('Сейчас ничего не пишется'); return; }
-  veSetStatus('Останавливаю...');
+  if(!veRecording && !veRecorder){ showToast('Запись не идёт'); return; }
   veStopRecording();
 });
 document.getElementById('veUploadBtn')?.addEventListener('click',()=>document.getElementById('veFileInput')?.click());
 document.getElementById('veFileInput')?.addEventListener('change',e=>{
   const f=e.target.files&&e.target.files[0]; if(!f) return;
-  if(f.size>veMax()){ showToast('Файл больше '+Math.round(veMax()/1024)+' КБ'); return; }
+  if(f.size>veMax()){ showToast('Макс '+Math.round(veMax()/1024)+' КБ'); return; }
   veBlob=f;
   const live=document.getElementById('veLive');
-  live.srcObject=null; live.src=URL.createObjectURL(f); live.controls=true; live.muted=false;
-  veSetStatus('Файл '+Math.round(f.size/1024)+' КБ — можно публиковать');
+  if(live){ live.srcObject=null; live.src=URL.createObjectURL(f); live.controls=true; live.muted=false; live.load(); }
+  veSetStatus('Файл '+Math.round(f.size/1024)+' КБ · '+(f.type||'video')+' — публикуй');
 });
 document.getElementById('vePublishBtn')?.addEventListener('click',async()=>{
   if(!loggedInCitizenId) return showToast('ВОЙДИ');
-  if(veRecording){ showToast('Сначала останови запись'); return; }
-  if(!veBlob || !veBlob.size){ showToast('Нет видео — запиши или загрузи файл'); return; }
-  if(veBlob.size>veMax()) return showToast('Слишком большой файл');
+  if(veRecording || veStopping){ showToast('Сначала останови запись'); return; }
+  const linkRaw=(document.getElementById('veLink')?.value||'').trim();
+  const parsed=linkRaw?parseExternalVideoUrl(linkRaw):null;
+  if(linkRaw && !parsed){ showToast('Ссылка не распознана (YouTube / TikTok / Catbox)'); return; }
+  if(!parsed && (!veBlob || !veBlob.size)){ showToast('Нет видео и нет ссылки'); return; }
+  if(veBlob && veBlob.size>veMax()) return showToast('Файл слишком большой');
   const me=citizens.find(c=>c.id===loggedInCitizenId);
   if(!me) return showToast('ВОЙДИ');
   veSetStatus('Публикация...');
   const btn=document.getElementById('vePublishBtn');
   if(btn) btn.disabled=true;
   try{
-    let dataUrl=await blobToDataUrl(veBlob);
-    const mimeType=(veBlob.type && veBlob.type.startsWith('video/')) ? veBlob.type : detectVideoMime(dataUrl, 'video/webm');
-    dataUrl=fixVideoDataUrl(dataUrl, mimeType);
-    // Firestore doc limit ~1MB; keep margin
-    if(dataUrl.length > 900000){ showToast('После кодирования слишком большое — сними короче'); veSetStatus('Слишком большое'); return; }
     const id=uid('vid');
-    await setDoc(doc(db,'videos',id),{
+    const base={
       id,
       title:(document.getElementById('veTitle').value||'').trim()||'Без названия',
       desc:(document.getElementById('veDesc').value||'').trim(),
       orient:document.getElementById('veOrient').value||'portrait',
-      dataUrl,
-      mimeType,
       overlayText:((document.getElementById('veText')?.value||'')+(document.getElementById('veEmoji')?.value||'')).trim(),
       overlayColor:document.getElementById('veTextColor')?.value||'#fff',
       effect:document.getElementById('veEffect')?.value||'',
@@ -10906,39 +10951,41 @@ document.getElementById('vePublishBtn')?.addEventListener('click',async()=>{
       authorName:me.channelName||me.nickname||me.name,
       authorAvatar:me.channelAvatar||me.avatarUrl||'',
       likes:[], likesCount:0, createdAt:Date.now()
-    });
+    };
+    if(parsed){
+      base.orient = document.getElementById('veOrient').value || parsed.orient || 'landscape';
+      base.linkUrl = parsed.pageUrl;
+      base.linkProvider = parsed.provider;
+      base.embedUrl = parsed.embedUrl || '';
+      base.directUrl = parsed.directUrl || '';
+      base.dataUrl = '';
+      base.mimeType = parsed.provider==='catbox'||parsed.provider==='direct' ? 'video/mp4' : 'text/html';
+    } else {
+      let dataUrl=await blobToDataUrl(veBlob);
+      let mimeType=(veBlob.type && veBlob.type.indexOf('video/')===0) ? veBlob.type.split(';')[0] : 'video/webm';
+      if(dataUrl.startsWith('data:')) dataUrl=dataUrl.replace(/^data:[^;,]*/, 'data:'+mimeType);
+      if(!dataUrl.startsWith('data:video/')){
+        showToast('Плохой формат файла');
+        veSetStatus('Нужен video/*');
+        return;
+      }
+      if(dataUrl.length > 900000){ showToast('Слишком большое после кодирования'); veSetStatus('Уменьши качество/длину'); return; }
+      base.dataUrl=dataUrl;
+      base.mimeType=mimeType;
+    }
+    await setDoc(doc(db,'videos',id), base);
     document.getElementById('videoEditorModal')?.classList.remove('show');
-    showToast('Видео опубликовано');
+    showToast('Опубликовано');
     try{ sounds.success(); }catch(e){}
     veBlob=null; veChunks=[];
     renderVideoFeed();
   }catch(e){
     console.error(e);
-    showToast('Ошибка публикации: '+(e.code||e.message||'unknown'));
+    showToast('Ошибка: '+(e.code||e.message||'fail'));
     veSetStatus('Ошибка публикации');
   }finally{
     if(btn) btn.disabled=false;
   }
-});
-
-document.getElementById('vidSearch')?.addEventListener('input',()=>renderVideoFeed());
-document.getElementById('vidShortsFeedBtn')?.addEventListener('click',()=>{
-  shortsMode=true; videoFilter='short';
-  document.querySelectorAll('#vidFilters button').forEach(x=>x.classList.toggle('active', x.dataset.vfilter==='short'));
-  renderVideoFeed();
-  showToast('Лента шортсов 🎲');
-});
-document.getElementById('vidNormalFeedBtn')?.addEventListener('click',()=>{
-  shortsMode=false; videoFilter='all';
-  document.querySelectorAll('#vidFilters button').forEach(x=>x.classList.toggle('active', x.dataset.vfilter==='all'));
-  renderVideoFeed();
-});
-
-document.getElementById('vidFilters')?.addEventListener('click',e=>{
-  const b=e.target.closest('[data-vfilter]'); if(!b) return;
-  videoFilter=b.dataset.vfilter;
-  document.querySelectorAll('#vidFilters button').forEach(x=>x.classList.toggle('active',x===b));
-  renderVideoFeed();
 });
 
 function detectVideoMime(dataUrl, fallback){
@@ -10956,17 +11003,81 @@ function fixVideoDataUrl(dataUrl, mime){
   }
   return dataUrl;
 }
+function parseExternalVideoUrl(raw){
+  if(!raw) return null;
+  let url=String(raw).trim();
+  if(!/^https?:\/\//i.test(url)) url='https://'+url;
+  let u;
+  try{ u=new URL(url); }catch(e){ return null; }
+  const host=(u.hostname||'').replace(/^www\./,'').toLowerCase();
+  // YouTube
+  if(host==='youtu.be' || host==='youtube.com' || host==='m.youtube.com' || host==='music.youtube.com' || host==='youtube-nocookie.com'){
+    let id='';
+    if(host==='youtu.be') id=(u.pathname||'').split('/').filter(Boolean)[0]||'';
+    else if(u.pathname.startsWith('/shorts/')) id=u.pathname.split('/')[2]||'';
+    else if(u.pathname.startsWith('/embed/')) id=u.pathname.split('/')[2]||'';
+    else id=u.searchParams.get('v')||'';
+    id=(id||'').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,20);
+    if(!id) return null;
+    return { provider:'youtube', id, pageUrl:url, embedUrl:'https://www.youtube-nocookie.com/embed/'+id+'?rel=0&modestbranding=1', orient: u.pathname.includes('/shorts/') ? 'portrait' : 'landscape' };
+  }
+  // TikTok
+  if(host==='tiktok.com' || host.endsWith('.tiktok.com') || host==='vm.tiktok.com'){
+    // /@user/video/123456
+    let id='';
+    const parts=(u.pathname||'').split('/').filter(Boolean);
+    const vi=parts.indexOf('video');
+    if(vi>=0 && parts[vi+1]) id=parts[vi+1].replace(/[^0-9]/g,'');
+    return { provider:'tiktok', id, pageUrl:url, embedUrl: id? ('https://www.tiktok.com/embed/v2/'+id) : url, orient:'portrait' };
+  }
+  // Catbox / litterbox direct files
+  if(host==='files.catbox.moe' || host==='catbox.moe' || host==='litterbox.catbox.moe' || host==='litter.catbox.moe'){
+    const path=u.pathname||'';
+    if(!/\.(mp4|webm|mov|mkv|avi)(\?|$)/i.test(path) && host==='catbox.moe') return null;
+    return { provider:'catbox', id:path, pageUrl:url, directUrl:url, orient:'landscape' };
+  }
+  // generic direct video link
+  if(/\.(mp4|webm|mov)(\?|$)/i.test(u.pathname||'')){
+    return { provider:'direct', id:url, pageUrl:url, directUrl:url, orient:'landscape' };
+  }
+  return null;
+}
 function videoPlayerHtml(v){
-  const mime=detectVideoMime(v.dataUrl, v.mimeType);
-  const src=fixVideoDataUrl(v.dataUrl, mime);
   const fx=VE_EFFECT_CSS[v.effect]||'';
-  if(!src) return `<div class="id-label" style="padding:24px;text-align:center;">Нет файла видео</div>`;
-  return `<video class="vid-el" controls playsinline preload="auto" style="filter:${fx}">
-    <source src="${src}" type="${mime}">
-    <source src="${src}" type="video/webm">
-    <source src="${src}" type="video/mp4">
-    Ваш браузер не поддерживает это видео (${mime}).
-  </video>`;
+  // External link video
+  if(v.linkProvider || v.linkUrl){
+    const prov=v.linkProvider||'';
+    const orient=v.orient==='portrait'?'portrait':'';
+    if(prov==='youtube' && v.embedUrl){
+      return `<div class="vid-embed ${orient}"><iframe src="${escapeHtml(v.embedUrl)}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy" title="youtube"></iframe></div>`;
+    }
+    if(prov==='tiktok'){
+      const emb=v.embedUrl||v.linkUrl||'';
+      if(emb.includes('/embed')){
+        return `<div class="vid-embed portrait"><iframe src="${escapeHtml(emb)}" allow="encrypted-media" allowfullscreen loading="lazy" title="tiktok"></iframe></div>`;
+      }
+      return `<div style="padding:20px;text-align:center;background:#111;color:#fff;"><a href="${escapeHtml(v.linkUrl||emb)}" target="_blank" rel="noopener" style="color:#0ff;">Открыть в TikTok</a></div>`;
+    }
+    if((prov==='catbox'||prov==='direct') && (v.directUrl||v.linkUrl)){
+      const src=v.directUrl||v.linkUrl;
+      return `<video class="vid-el" controls playsinline preload="metadata" style="filter:${fx}" src="${escapeHtml(src)}"></video>`;
+    }
+  }
+  let src=v.dataUrl||'';
+  let mime=(v.mimeType||'').split(';')[0];
+  if(!mime || mime==='application/octet-stream'){
+    const m=String(src).match(/^data:([^;,]+)/);
+    mime=(m&&m[1])||'video/webm';
+  }
+  if(src.startsWith('data:')) src=src.replace(/^data:[^;,]*/, 'data:'+mime);
+  if(!src || src.length<100) return `<div class="id-label" style="padding:24px;text-align:center;">Нет видео — сними, загрузи файл или вставь ссылку</div>`;
+  const safeId='vp_'+String(v.id||Math.random()).replace(/[^a-zA-Z0-9]/g,'');
+  setTimeout(()=>{
+    const el=document.getElementById(safeId);
+    if(!el) return;
+    el.onerror=()=>{ el.outerHTML='<div class="id-label" style="padding:20px;text-align:center;">Не удалось декодировать. Лучше mp4 / ссылка YouTube·Catbox</div>'; };
+  },0);
+  return `<video id="${safeId}" class="vid-el" controls playsinline webkit-playsinline preload="auto" style="filter:${fx}" src="${src}"></video>`;
 }
 let shortsMode=false;
 
