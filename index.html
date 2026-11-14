@@ -258,6 +258,20 @@
   .alltabs-search-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center;}
   .alltabs-search-row input{flex:1;min-width:160px;}
 
+  
+  .call-overlay{position:fixed;inset:0;z-index:200;background:rgba(5,10,15,.92);display:none;align-items:center;justify-content:center;padding:16px;}
+  .call-overlay.show{display:flex;}
+  .call-box{width:min(420px,100%);background:var(--bg-panel);border:1px solid var(--line);border-radius:20px;padding:20px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.45);}
+  .call-box h3{margin:0 0 6px;font-size:18px;}
+  .call-status{font-size:13px;color:var(--text-dim);margin-bottom:14px;}
+  .call-videos{display:grid;grid-template-columns:1fr;gap:10px;margin:12px 0;}
+  .call-videos.video-on{grid-template-columns:1fr 1fr;}
+  .call-videos video{width:100%;max-height:180px;background:#000;border-radius:12px;object-fit:cover;}
+  .call-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px;}
+  .call-actions .btn{min-width:110px;}
+  .btn-call{background:linear-gradient(135deg,#22c55e,#16a34a)!important;color:#fff!important;border:none!important;}
+  .btn-hang{background:linear-gradient(135deg,#ef4444,#b91c1c)!important;color:#fff!important;border:none!important;}
+
   .energy-bar{
     border-radius: 8px !important;
     height: 10px !important;
@@ -2608,6 +2622,24 @@
 </div>
 
 <audio id="spPreviewAudio" preload="none"></audio>
+
+<div class="call-overlay" id="callOverlay">
+  <div class="call-box">
+    <h3 id="callTitle">Звонок</h3>
+    <div class="call-status" id="callStatus">Соединение...</div>
+    <div class="call-videos" id="callVideos">
+      <video id="callRemoteVideo" autoplay playsinline></video>
+      <video id="callLocalVideo" autoplay playsinline muted></video>
+    </div>
+    <div class="call-actions">
+      <button class="btn btn-call" id="callAcceptBtn" style="display:none;">Принять</button>
+      <button class="btn btn-ghost" id="callMuteBtn">Микрофон</button>
+      <button class="btn btn-ghost" id="callCamBtn">Видео</button>
+      <button class="btn btn-hang" id="callHangBtn">Сбросить</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- PASSWORD MODAL -->
@@ -11758,6 +11790,346 @@ document.getElementById('lastfmPlaylistSaveBtn')?.addEventListener('click', asyn
 });
 
 
+
+/* ===================== WEBRTC VOICE + OPTIONAL VIDEO ===================== */
+const RTC_CONFIG = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' }
+  ]
+};
+let rtcPc = null;
+let rtcLocalStream = null;
+let rtcCallId = null;
+let rtcRole = null; // 'caller' | 'callee'
+let rtcUnsubCall = null;
+let rtcUnsubCand = null;
+let rtcMuted = false;
+let rtcVideoOn = false;
+let rtcIncoming = null;
+
+function rtcCallDocId(a, b){
+  return 'call_'+[a,b].sort().join('_');
+}
+function rtcSetStatus(t){
+  const el=document.getElementById('callStatus');
+  if(el) el.textContent=t;
+}
+function rtcShowOverlay(show){
+  document.getElementById('callOverlay')?.classList.toggle('show', !!show);
+}
+function rtcUpdateVideoLayout(){
+  const box=document.getElementById('callVideos');
+  if(box) box.classList.toggle('video-on', !!rtcVideoOn);
+}
+
+async function rtcEnsureMedia(wantVideo){
+  if(rtcLocalStream){
+    const v = rtcLocalStream.getVideoTracks()[0];
+    if(wantVideo && !v){
+      try{
+        const vs=await navigator.mediaDevices.getUserMedia({ video:true, audio:false });
+        const track=vs.getVideoTracks()[0];
+        rtcLocalStream.addTrack(track);
+        const lv=document.getElementById('callLocalVideo');
+        if(lv){ lv.srcObject=rtcLocalStream; }
+        return rtcLocalStream;
+      }catch(e){ showToast('Камера недоступна'); return rtcLocalStream; }
+    }
+    return rtcLocalStream;
+  }
+  rtcLocalStream = await navigator.mediaDevices.getUserMedia({
+    audio:true,
+    video: wantVideo ? { facingMode:'user', width:{ideal:640}, height:{ideal:480} } : false
+  });
+  const lv=document.getElementById('callLocalVideo');
+  if(lv){ lv.srcObject=rtcLocalStream; lv.muted=true; }
+  return rtcLocalStream;
+}
+
+function rtcCleanupPc(){
+  try{ rtcUnsubCall && rtcUnsubCall(); }catch(e){}
+  try{ rtcUnsubCand && rtcUnsubCand(); }catch(e){}
+  rtcUnsubCall=null; rtcUnsubCand=null;
+  if(rtcPc){
+    try{ rtcPc.onicecandidate=null; rtcPc.ontrack=null; rtcPc.close(); }catch(e){}
+  }
+  rtcPc=null;
+  if(rtcLocalStream){
+    rtcLocalStream.getTracks().forEach(t=>{ try{t.stop();}catch(e){} });
+  }
+  rtcLocalStream=null;
+  rtcCallId=null; rtcRole=null; rtcIncoming=null;
+  rtcMuted=false; rtcVideoOn=false;
+  const rv=document.getElementById('callRemoteVideo');
+  const lv=document.getElementById('callLocalVideo');
+  if(rv) rv.srcObject=null;
+  if(lv) lv.srcObject=null;
+  rtcUpdateVideoLayout();
+  document.getElementById('callAcceptBtn').style.display='none';
+  document.getElementById('callMuteBtn').textContent='Микрофон';
+  document.getElementById('callCamBtn').textContent='Видео';
+  rtcShowOverlay(false);
+}
+
+async function rtcHangup(remoteAlreadyEnded){
+  const id=rtcCallId;
+  const role=rtcRole;
+  try{
+    if(id && !remoteAlreadyEnded){
+      await updateDoc(doc(db,'calls',id), { status:'ended', endedAt:Date.now(), endedBy: loggedInCitizenId||'' });
+    }
+  }catch(e){}
+  rtcCleanupPc();
+  if(!remoteAlreadyEnded) showToast('Звонок завершён');
+}
+
+function rtcBindPc(callId, role){
+  rtcPc = new RTCPeerConnection(RTC_CONFIG);
+  rtcPc.onicecandidate = async (ev)=>{
+    if(!ev.candidate) return;
+    try{
+      await setDoc(doc(collection(db,'calls',callId,'candidates')), {
+        role, candidate: ev.candidate.toJSON(), createdAt: Date.now()
+      });
+    }catch(e){ console.warn('ice', e); }
+  };
+  rtcPc.ontrack = (ev)=>{
+    const rv=document.getElementById('callRemoteVideo');
+    if(rv){
+      if(!rv.srcObject) rv.srcObject=new MediaStream();
+      rv.srcObject.addTrack(ev.track);
+      try{ rv.play(); }catch(e){}
+    }
+    if(ev.track.kind==='video'){ rtcVideoOn=true; rtcUpdateVideoLayout(); }
+  };
+  rtcPc.onconnectionstatechange = ()=>{
+    const st=rtcPc?.connectionState;
+    if(st==='connected') rtcSetStatus('Соединено');
+    else if(st==='connecting') rtcSetStatus('Соединение...');
+    else if(st==='failed') rtcSetStatus('Не удалось соединиться (NAT/сеть)');
+    else if(st==='disconnected') rtcSetStatus('Связь прервалась...');
+  };
+  if(rtcLocalStream){
+    rtcLocalStream.getTracks().forEach(tr=>rtcPc.addTrack(tr, rtcLocalStream));
+  }
+}
+
+function rtcWatchCandidates(callId, myRole){
+  const other = myRole==='caller' ? 'callee' : 'caller';
+  rtcUnsubCand = onSnapshot(collection(db,'calls',callId,'candidates'), async (snap)=>{
+    for(const d of snap.docChanges()){
+      if(d.type!=='added') continue;
+      const data=d.doc.data();
+      if(data.role===myRole) continue; // only remote
+      if(!data.candidate || !rtcPc) continue;
+      try{ await rtcPc.addIceCandidate(new RTCIceCandidate(data.candidate)); }
+      catch(e){ console.warn('addIce', e); }
+    }
+  });
+}
+
+function rtcWatchCallDoc(callId){
+  rtcUnsubCall = onSnapshot(doc(db,'calls',callId), async (snap)=>{
+    if(!snap.exists()) return;
+    const data=snap.data();
+    if(data.status==='ended'){
+      rtcHangup(true);
+      return;
+    }
+    // caller waits for answer
+    if(rtcRole==='caller' && data.answer && rtcPc && !rtcPc.currentRemoteDescription){
+      try{
+        await rtcPc.setRemoteDescription(data.answer);
+        rtcSetStatus('Ответ получен...');
+      }catch(e){ console.error(e); }
+    }
+    // video flag from peer
+    if(data.videoEnabled){ rtcVideoOn=true; rtcUpdateVideoLayout(); }
+  });
+}
+
+async function startVoiceCall(peerId){
+  if(!loggedInCitizenId) return showToast('ВОЙДИ');
+  if(!peerId || peerId===loggedInCitizenId) return;
+  if(rtcCallId) return showToast('Уже идёт звонок');
+  try{
+    await rtcEnsureMedia(false);
+  }catch(e){
+    showToast('Нет доступа к микрофону');
+    return;
+  }
+  const callId=rtcCallDocId(loggedInCitizenId, peerId);
+  rtcCallId=callId;
+  rtcRole='caller';
+  const peer=citizens.find(c=>c.id===peerId);
+  document.getElementById('callTitle').textContent='Звонок · '+(peer?.nickname||peer?.name||'житель');
+  document.getElementById('callAcceptBtn').style.display='none';
+  rtcShowOverlay(true);
+  rtcSetStatus('Вызов...');
+  rtcBindPc(callId, 'caller');
+  rtcWatchCandidates(callId, 'caller');
+  rtcWatchCallDoc(callId);
+  try{
+    const offer=await rtcPc.createOffer({ offerToReceiveAudio:true, offerToReceiveVideo:true });
+    await rtcPc.setLocalDescription(offer);
+    await setDoc(doc(db,'calls',callId), {
+      id: callId,
+      fromId: loggedInCitizenId,
+      toId: peerId,
+      status: 'ringing',
+      offer: { type: offer.type, sdp: offer.sdp },
+      answer: null,
+      videoEnabled: false,
+      createdAt: Date.now()
+    });
+    rtcSetStatus('Звоним... жду ответа');
+  }catch(e){
+    console.error(e);
+    showToast('Ошибка звонка');
+    rtcCleanupPc();
+  }
+}
+
+async function acceptIncomingCall(){
+  if(!rtcIncoming || !loggedInCitizenId) return;
+  const { callId, fromId, offer } = rtcIncoming;
+  try{
+    await rtcEnsureMedia(false);
+  }catch(e){
+    showToast('Нет доступа к микрофону');
+    return;
+  }
+  rtcCallId=callId;
+  rtcRole='callee';
+  document.getElementById('callAcceptBtn').style.display='none';
+  rtcSetStatus('Отвечаем...');
+  rtcBindPc(callId, 'callee');
+  rtcWatchCandidates(callId, 'callee');
+  rtcWatchCallDoc(callId);
+  try{
+    await rtcPc.setRemoteDescription(offer);
+    const answer=await rtcPc.createAnswer();
+    await rtcPc.setLocalDescription(answer);
+    await updateDoc(doc(db,'calls',callId), {
+      status: 'active',
+      answer: { type: answer.type, sdp: answer.sdp },
+      answeredAt: Date.now()
+    });
+    rtcSetStatus('Соединение...');
+    rtcIncoming=null;
+  }catch(e){
+    console.error(e);
+    showToast('Не удалось ответить');
+    rtcHangup(false);
+  }
+}
+
+async function rtcToggleMute(){
+  if(!rtcLocalStream) return;
+  rtcMuted=!rtcMuted;
+  rtcLocalStream.getAudioTracks().forEach(t=>t.enabled=!rtcMuted);
+  document.getElementById('callMuteBtn').textContent = rtcMuted ? 'Микрофон выкл' : 'Микрофон';
+}
+
+async function rtcToggleVideo(){
+  if(!rtcCallId || !rtcPc) return showToast('Сначала начни звонок');
+  try{
+    if(!rtcVideoOn){
+      await rtcEnsureMedia(true);
+      const vtrack=rtcLocalStream.getVideoTracks()[0];
+      if(!vtrack) return showToast('Нет камеры');
+      const sender=rtcPc.getSenders().find(s=>s.track && s.track.kind==='video');
+      if(sender) await sender.replaceTrack(vtrack);
+      else rtcPc.addTrack(vtrack, rtcLocalStream);
+      rtcVideoOn=true;
+      document.getElementById('callCamBtn').textContent='Видео вкл';
+      await updateDoc(doc(db,'calls',rtcCallId), { videoEnabled:true });
+      // renegotiate
+      if(rtcRole==='caller'){
+        const offer=await rtcPc.createOffer();
+        await rtcPc.setLocalDescription(offer);
+        await updateDoc(doc(db,'calls',rtcCallId), { offer:{ type:offer.type, sdp:offer.sdp }, renegotiate:Date.now() });
+      }
+    } else {
+      rtcLocalStream.getVideoTracks().forEach(t=>{ t.enabled=false; t.stop(); rtcLocalStream.removeTrack(t); });
+      const sender=rtcPc.getSenders().find(s=>s.track && s.track.kind==='video');
+      if(sender) await sender.replaceTrack(null);
+      rtcVideoOn=false;
+      document.getElementById('callCamBtn').textContent='Видео';
+      try{ await updateDoc(doc(db,'calls',rtcCallId), { videoEnabled:false }); }catch(e){}
+    }
+    rtcUpdateVideoLayout();
+    const lv=document.getElementById('callLocalVideo');
+    if(lv) lv.srcObject=rtcLocalStream;
+  }catch(e){
+    console.error(e);
+    showToast('Не удалось переключить видео');
+  }
+}
+
+// Incoming call listener
+if(typeof db !== 'undefined'){
+  // defer until logged in via interval check
+  setInterval(()=>{
+    if(!loggedInCitizenId || window.__rtcIncomingBound) return;
+    window.__rtcIncomingBound=true;
+    try{
+      onSnapshot(collection(db,'calls'), (snap)=>{
+        if(!loggedInCitizenId || rtcCallId) return;
+        snap.docChanges().forEach(ch=>{
+          if(ch.type!=='added' && ch.type!=='modified') return;
+          const data=ch.doc.data();
+          if(data.toId!==loggedInCitizenId) return;
+          if(data.status!=='ringing') return;
+          if(!data.offer) return;
+          // show incoming
+          rtcIncoming={ callId:ch.doc.id, fromId:data.fromId, offer:data.offer };
+          const from=citizens.find(c=>c.id===data.fromId);
+          document.getElementById('callTitle').textContent='Входящий · '+(from?.nickname||from?.name||'житель');
+          document.getElementById('callAcceptBtn').style.display='';
+          rtcSetStatus('Вам звонят...');
+          rtcShowOverlay(true);
+          try{ sounds.receive(); }catch(e){}
+        });
+      });
+    }catch(e){ console.warn(e); window.__rtcIncomingBound=false; }
+  }, 2000);
+}
+
+// Handle renegotiation for callee when caller enables video
+// (watch already sets remote offer only once — extend watch)
+const _rtcWatchCallDoc = rtcWatchCallDoc;
+rtcWatchCallDoc = function(callId){
+  rtcUnsubCall = onSnapshot(doc(db,'calls',callId), async (snap)=>{
+    if(!snap.exists()) return;
+    const data=snap.data();
+    if(data.status==='ended'){ rtcHangup(true); return; }
+    if(rtcRole==='caller' && data.answer && rtcPc && !rtcPc.currentRemoteDescription){
+      try{ await rtcPc.setRemoteDescription(data.answer); rtcSetStatus('Ответ получен...'); }catch(e){ console.error(e); }
+    }
+    if(rtcRole==='callee' && data.offer && data.renegotiate && rtcPc){
+      try{
+        const cur=rtcPc.currentRemoteDescription;
+        if(!cur || cur.sdp!==data.offer.sdp){
+          await rtcPc.setRemoteDescription(data.offer);
+          const answer=await rtcPc.createAnswer();
+          await rtcPc.setLocalDescription(answer);
+          await updateDoc(doc(db,'calls',callId), { answer:{ type:answer.type, sdp:answer.sdp } });
+        }
+      }catch(e){ console.warn('renego', e); }
+    }
+    if(data.videoEnabled){ rtcVideoOn=true; rtcUpdateVideoLayout(); }
+  });
+};
+
+document.getElementById('callHangBtn')?.addEventListener('click', ()=>rtcHangup(false));
+document.getElementById('callAcceptBtn')?.addEventListener('click', ()=>acceptIncomingCall());
+document.getElementById('callMuteBtn')?.addEventListener('click', ()=>rtcToggleMute());
+document.getElementById('callCamBtn')?.addEventListener('click', ()=>rtcToggleVideo());
+
+
 let lastMsgNotifyId=null;
 setInterval(()=>{
   if(!loggedInCitizenId||!messages.length)return;
@@ -12084,10 +12456,12 @@ function renderChatHeader(){
         </div>
       </div>
       <div style="display:flex; gap:4px; flex-shrink:0;">
+        <button class="btn btn-call" id="startCallBtn" style="padding:4px 8px; font-size:10px;" title="Звонок">📞</button>
         <button class="btn" id="sendContractBtn" style="padding:4px 8px; font-size:10px;" title="Контракт">📜</button>
         <button class="btn btn-ghost" id="reportPeerBtn" style="padding:4px 6px; font-size:10px;">!</button>
         <button class="btn btn-danger" id="blockPeerBtn" style="padding:4px 6px; font-size:10px;">⊘</button>
       </div>`;
+    document.getElementById('startCallBtn')?.addEventListener('click', ()=>startVoiceCall(c.id));
     document.getElementById('reportPeerBtn').addEventListener('click', openReportModal);
     document.getElementById('blockPeerBtn').addEventListener('click', blockCurrentPeer);
     updateChatPresenceUI();
