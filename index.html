@@ -246,6 +246,18 @@
   .sp-charts-grid{display:grid;grid-template-columns:1fr;gap:12px;}
   @media(min-width:700px){.sp-charts-grid{grid-template-columns:1fr 1fr;}}
 
+  
+  .tab-btn[data-view="alltabs"]{ color:#e11d48!important; font-weight:800!important; }
+  .mobile-nav button[data-view="alltabs"]{ color:#e11d48!important; font-weight:800!important; }
+  .alltabs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
+  .alltabs-card{background:var(--bg-card);border:1px solid var(--line);border-radius:14px;padding:14px 12px;cursor:pointer;text-align:center;transition:transform .12s,box-shadow .12s;}
+  .alltabs-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
+  .alltabs-ico{font-size:28px;line-height:1.2;margin-bottom:6px;}
+  .alltabs-name{font-weight:700;font-size:13px;}
+  .alltabs-desc{font-size:10px;color:var(--text-dim);margin-top:4px;line-height:1.3;}
+  .alltabs-search-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center;}
+  .alltabs-search-row input{flex:1;min-width:160px;}
+
   .energy-bar{
     border-radius: 8px !important;
     height: 10px !important;
@@ -1552,6 +1564,7 @@
   <div class="letterhead-rule"></div>
 
   <div class="tabs">
+    <button class="tab-btn" data-view="alltabs" style="color:#e11d48;font-weight:800;">Все вкладки</button>
     <button class="tab-btn active" data-view="passports">Паспорта</button>
     <button class="tab-btn" data-view="currency">Курс</button>
     <button class="tab-btn" data-view="auction">Аукцион<span class="order-badge" id="auctionBadge" style="display:none;"></span></button>
@@ -1581,11 +1594,29 @@
     <button class="tab-btn" data-view="exchange">Обменник</button>
     <button class="tab-btn" data-view="richest">Богатые</button>
     <button class="tab-btn" data-view="event" id="tabEvent" style="display:none; color:var(--amber);">⚡ Ивент</button>
+    <button class="tab-btn" data-view="charts">Чарты 🎵</button>
     <button class="tab-btn" data-view="me">Я<span class="order-badge" id="rankBadge" style="display:none;"></span></button>
     <button class="tab-btn" data-view="adminpanel" id="tabAdminPanel" style="display:none;">Админ</button>
   </div>
 
   <!-- PASSPORTS -->
+  
+  <div class="view" id="view-alltabs">
+    <div class="panel">
+      <div class="panel-title"><span style="color:#e11d48;font-weight:800;">Все вкладки</span></div>
+      <div class="alltabs-search-row">
+        <input id="alltabsSearch" placeholder="Поиск...">
+        <label class="id-label" style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+          <input type="radio" name="alltabsMode" value="name" checked> по названию
+        </label>
+        <label class="id-label" style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+          <input type="radio" name="alltabsMode" value="content"> по содержимому
+        </label>
+      </div>
+      <div class="alltabs-grid" id="alltabsGrid"></div>
+    </div>
+  </div>
+
   <div class="view active" id="view-passports">
     <div class="pp-layout">
       <div class="panel">
@@ -1813,6 +1844,14 @@
           <div class="id-label" style="color:rgba(255,255,255,.55);margin-bottom:10px;font-size:10px;">
             В Spotify: Настройки → Social → подключи Last.fm (scrobbling). Тогда «сейчас играет» и топы появятся здесь.
           </div>
+          <div class="form-group" style="margin-bottom:8px;">
+            <label style="color:rgba(255,255,255,.7);font-size:11px;">Плейлист (ссылка Spotify / YouTube / Deezer / Last.fm)</label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <input id="lastfmPlaylistInput" placeholder="https://open.spotify.com/playlist/..." style="flex:1;min-width:140px;background:#000;color:#fff;border:1px solid #333;">
+              <button class="btn sp-btn" id="lastfmPlaylistSaveBtn" style="font-size:12px;padding:8px 12px;">Прикрепить</button>
+            </div>
+          </div>
+          <div id="spotifyPlaylistLinkBox" style="margin-bottom:8px;"></div>
           <div id="spotifyConnectedPanel">
             <div id="spotifyNowPlayingBox" style="margin-top:6px;"></div>
             <div id="spotifyTopArtistsBox" style="margin-top:10px;"></div>
@@ -2429,6 +2468,7 @@
 </div>
 
 <div class="mobile-nav">
+  <button data-view="alltabs" style="color:#e11d48;font-weight:800;">Все</button>
   <button class="active" data-view="passports">Паспорта</button>
   <button data-view="currency">Курс</button>
   <button data-view="auction">Аукцион</button>
@@ -3547,6 +3587,7 @@ function switchView(name){
   if(name === 'funzone'){ renderFunZone(); }
   if(name === 'school'){ try{renderSchool();}catch(e){console.error(e);} }
   if(name === 'charts'){ try{renderMusicCharts();}catch(e){console.error(e);} }
+  if(name === 'alltabs'){ try{renderAllTabs();}catch(e){console.error(e);} }
   if(name === 'videos'){ try{renderVideoFeed();}catch(e){console.error(e);} }
   if(name === 'contracts'){ renderContracts(); }
   if(name === 'shops'){ renderShops(); }
@@ -11459,6 +11500,14 @@ function renderSpotifyMeUI(){
     st.textContent='Не привязан · API Key + ник Last.fm → Привязать';
   }
 
+  const plLink=document.getElementById('spotifyPlaylistLinkBox');
+  if(plLink){
+    const pl=me?.spotify?.playlist;
+    if(pl&&pl.url){
+      plLink.innerHTML=`<a class="sp-green" href="${escapeHtml(pl.url)}" target="_blank" rel="noopener">📎 ${escapeHtml(pl.name||'Плейлист')}</a>`;
+      const pin=document.getElementById('lastfmPlaylistInput'); if(pin && !pin.value) pin.value=pl.url;
+    } else plLink.innerHTML='';
+  }
   const nowBox=document.getElementById('spotifyNowPlayingBox');
   if(nowBox){
     const np=me?.spotify?.nowPlaying;
@@ -11571,6 +11620,143 @@ document.getElementById('chartsRefreshBtn')?.addEventListener('click', ()=>{
   if(loggedInCitizenId && lfGetUser() && lfGetApiKey()) lastfmSyncToProfile().then(()=>renderMusicCharts());
   else renderMusicCharts();
 });
+
+
+/* ===== ALL TABS + SILENT LAST.FM ===== */
+const ALL_TABS_META = [
+  {id:'alltabs', name:'Все вкладки', icon:'📑', desc:'поиск по разделам сайта'},
+  {id:'passports', name:'Паспорта', icon:'🪪', desc:'жители, ранги, регистрация'},
+  {id:'currency', name:'Курс', icon:'💱', desc:'валюта и обмен'},
+  {id:'auction', name:'Аукцион', icon:'🔨', desc:'лоты и ставки'},
+  {id:'contacts', name:'Контакты', icon:'💬', desc:'личные сообщения и группы'},
+  {id:'forum', name:'Форум', icon:'📋', desc:'посты и обсуждения'},
+  {id:'globalchat', name:'Общий чат', icon:'🌐', desc:'глобальная переписка'},
+  {id:'news', name:'Новости', icon:'📰', desc:'новости государства'},
+  {id:'school', name:'Школа', icon:'📚', desc:'домашка, срочные, компромат'},
+  {id:'videos', name:'Видосики', icon:'🎬', desc:'лента и шортсы'},
+  {id:'charts', name:'Чарты', icon:'🎵', desc:'сейчас слушают, топы Last.fm'},
+  {id:'achievements', name:'Ачивки', icon:'🏆', desc:'достижения'},
+  {id:'battlepass', name:'Боевой пропуск', icon:'🎟️', desc:'награды за прогресс'},
+  {id:'funzone', name:'Фишки', icon:'✨', desc:'задания и фичи'},
+  {id:'contracts', name:'Контракты', icon:'📜', desc:'договоры между жителями'},
+  {id:'shops', name:'Магазины', icon:'🏪', desc:'лавки игроков'},
+  {id:'clans', name:'Кланы', icon:'🛡️', desc:'кланы и копилка'},
+  {id:'pets', name:'Питомцы', icon:'🐾', desc:'тамагочи'},
+  {id:'clicker', name:'Кликер', icon:'👆', desc:'клики и скин кнопки'},
+  {id:'manikat', name:'Маникат', icon:'マネキン', desc:'манекен, оружие, броня'},
+  {id:'fight', name:'Бойня', icon:'⚔️', desc:'дуэли'},
+  {id:'anomalies', name:'Аномалии', icon:'👾', desc:'монстры'},
+  {id:'blackmarket', name:'Чёрный рынок', icon:'🕶️', desc:'особые товары'},
+  {id:'casino', name:'Казино', icon:'🎰', desc:'ставки'},
+  {id:'minigames', name:'Мини-игры', icon:'🎮', desc:'танки, тетрис и др.'},
+  {id:'photobase', name:'База Фото', icon:'🖼️', desc:'общие фото'},
+  {id:'mutations', name:'Мутации', icon:'🧬', desc:'имба и побочки'},
+  {id:'xpmarket', name:'Опытный рынок', icon:'⭐', desc:'талисманы за опыт'},
+  {id:'exchange', name:'Обменник', icon:'🔁', desc:'фантики и кумыс'},
+  {id:'richest', name:'Богатые', icon:'💎', desc:'топ по деньгам'},
+  {id:'event', name:'Ивент', icon:'⚡', desc:'временные события'},
+  {id:'me', name:'Я', icon:'👤', desc:'профиль, Last.fm, настройки'},
+  {id:'adminpanel', name:'Админ', icon:'🛠️', desc:'только для админа'}
+];
+function renderAllTabs(){
+  const grid=document.getElementById('alltabsGrid');
+  if(!grid) return;
+  const q=(document.getElementById('alltabsSearch')?.value||'').trim().toLowerCase();
+  const mode=(document.querySelector('input[name="alltabsMode"]:checked')?.value)||'name';
+  let list=ALL_TABS_META.filter(t=>{
+    if(t.id==='adminpanel' && !isAdmin) return false;
+    if(t.id==='event'){
+      const el=document.getElementById('tabEvent');
+      if(el && el.style.display==='none') return false;
+    }
+    if(t.id==='blackmarket'){
+      const el=document.getElementById('tabBlackmarket');
+      if(el && el.style.display==='none') return false;
+    }
+    if(!q) return true;
+    if(mode==='name') return (t.name+' '+t.id).toLowerCase().includes(q);
+    // content: name + desc + visible text inside view if present
+    const view=document.getElementById('view-'+t.id);
+    const extra=view ? (view.textContent||'').toLowerCase().slice(0,4000) : '';
+    return (t.name+' '+t.desc+' '+extra).toLowerCase().includes(q);
+  });
+  grid.innerHTML=list.map(t=>`<div class="alltabs-card" data-go-view="${t.id}">
+    <div class="alltabs-ico">${t.icon}</div>
+    <div class="alltabs-name" ${t.id==='alltabs'?'style="color:#e11d48"':''}>${escapeHtml(t.name)}</div>
+    <div class="alltabs-desc">${escapeHtml(t.desc)}</div>
+  </div>`).join('') || '<div class="empty-list">Ничего не найдено</div>';
+  grid.querySelectorAll('[data-go-view]').forEach(el=>{
+    el.addEventListener('click',()=>switchView(el.dataset.goView));
+  });
+}
+document.getElementById('alltabsSearch')?.addEventListener('input',()=>renderAllTabs());
+document.querySelectorAll('input[name="alltabsMode"]').forEach(r=>r.addEventListener('change',()=>renderAllTabs()));
+
+async function lastfmSilentTick(){
+  if(!loggedInCitizenId) return;
+  if(document.visibilityState==='hidden') return;
+  const user=lfGetUser();
+  const key=lfGetApiKey();
+  if(!user||!key) return;
+  try{
+    const recent=await lfApi('user.getRecentTracks', { user, limit:'1' });
+    const recentList=recent?.recenttracks?.track || [];
+    const arr=Array.isArray(recentList)?recentList:[recentList].filter(Boolean);
+    const t=arr[0];
+    if(!t) return;
+    const name=t.name||'';
+    const artists=t.artist?.['#text']||t.artist?.name||'';
+    const albumArt=(t.image||[]).slice().reverse().find(i=>i['#text'])?.['#text']||'';
+    const isNow=t?.['@attr']?.nowplaying==='true';
+    const me=citizens.find(c=>c.id===loggedInCitizenId);
+    const prev=me?.spotify?.nowPlaying;
+    // skip write if same
+    if(prev && prev.name===name && prev.artists===artists && !!prev.isPlaying===isNow) return;
+    let previewUrl=prev?.previewUrl||'';
+    let art=albumArt||prev?.albumArt||'';
+    if(isNow && (!previewUrl || prev?.name!==name)){
+      const dz=await deezerSearchPreview(name, artists);
+      previewUrl=dz.preview||previewUrl;
+      if(dz.cover) art=dz.cover;
+    }
+    const nowPlaying={ name, artists, albumArt:art, previewUrl, isPlaying:!!isNow, updatedAt:Date.now() };
+    const spotify={ ...(me?.spotify||{}), connected:true, source:'lastfm', displayName:user, lastfmUser:user, nowPlaying, lastSync:Date.now() };
+    if(me?.spotify?.playlist) spotify.playlist=me.spotify.playlist;
+    if(me?.spotify?.topArtists) spotify.topArtists=me.spotify.topArtists;
+    if(me?.spotify?.topTracks) spotify.topTracks=me.spotify.topTracks;
+    if(me?.spotify?.listenScore!=null) spotify.listenScore=me.spotify.listenScore;
+    await updateDoc(doc(db,'citizens',loggedInCitizenId), { spotify });
+    if(me) me.spotify=spotify;
+    // silent UI refresh
+    if(document.getElementById('view-me')?.classList.contains('active')) renderSpotifyMeUI();
+    if(document.getElementById('view-charts')?.classList.contains('active')) renderMusicCharts();
+  }catch(e){ /* silent */ }
+}
+setInterval(lastfmSilentTick, 5000);
+
+document.getElementById('lastfmPlaylistSaveBtn')?.addEventListener('click', async ()=>{
+  if(!loggedInCitizenId) return showToast('ВОЙДИ');
+  const url=(document.getElementById('lastfmPlaylistInput')?.value||'').trim();
+  if(!url || !/^https?:\/\//i.test(url)) return showToast('Вставь ссылку на плейлист');
+  const me=citizens.find(c=>c.id===loggedInCitizenId);
+  let name='Плейлист';
+  try{
+    const u=new URL(url);
+    if(u.hostname.includes('spotify')) name='Spotify плейлист';
+    else if(u.hostname.includes('youtube')||u.hostname.includes('youtu.be')) name='YouTube плейлист';
+    else if(u.hostname.includes('deezer')) name='Deezer плейлист';
+    else if(u.hostname.includes('last.fm')) name='Last.fm плейлист';
+  }catch(e){}
+  const playlist={ url, name, savedAt:Date.now() };
+  const spotify={ ...(me?.spotify||{}), playlist, connected: !!(me?.spotify?.connected || lfGetUser()) };
+  try{
+    await updateDoc(doc(db,'citizens',loggedInCitizenId), { spotify });
+    if(me) me.spotify=spotify;
+    renderSpotifyMeUI();
+    showToast('Плейлист прикреплён');
+  }catch(e){ showToast('Ошибка сохранения'); }
+});
+
 
 let lastMsgNotifyId=null;
 setInterval(()=>{
