@@ -229,6 +229,23 @@
   .ve-overlay-text{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);font-weight:800;font-size:18px;text-shadow:0 2px 4px #000;pointer-events:none;text-align:center;max-width:90%;}
   .ve-mask{position:absolute;inset:0;pointer-events:none;opacity:.55;}
 
+  
+  .sp-card{background:linear-gradient(135deg,#121212 0%,#1db95422 100%);border:1px solid #1db95455;border-radius:16px;padding:14px;margin-top:14px;color:#fff;}
+  .sp-card h3{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:8px;}
+  .sp-green{color:#1db954;}
+  .sp-btn{background:#1db954!important;color:#000!important;border:none!important;font-weight:700;}
+  .sp-btn:hover{filter:brightness(1.08);}
+  .sp-track{display:flex;gap:10px;align-items:center;padding:8px;border-radius:10px;background:rgba(255,255,255,.06);margin-bottom:8px;}
+  .sp-track img{width:48px;height:48px;border-radius:6px;object-fit:cover;background:#333;}
+  .sp-track .sp-meta{flex:1;min-width:0;}
+  .sp-track .sp-title{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sp-track .sp-artist{font-size:11px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sp-now{border:1px solid #1db95488;animation:spPulse 2s infinite;}
+  @keyframes spPulse{0%,100%{box-shadow:0 0 0 0 rgba(29,185,84,.35);}50%{box-shadow:0 0 0 6px rgba(29,185,84,0);}}
+  .sp-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;background:rgba(29,185,84,.15);color:#1db954;font-size:11px;font-weight:600;}
+  .sp-charts-grid{display:grid;grid-template-columns:1fr;gap:12px;}
+  @media(min-width:700px){.sp-charts-grid{grid-template-columns:1fr 1fr;}}
+
   .energy-bar{
     border-radius: 8px !important;
     height: 10px !important;
@@ -1726,6 +1743,34 @@
     </div>
   </div>
 
+  
+  <div class="view" id="view-charts">
+    <div class="panel">
+      <div class="panel-title"><span>🎵 Музыкальные чарты Гидрибсии</span>
+        <button class="btn btn-ghost" id="chartsRefreshBtn" style="font-size:11px;padding:6px 10px;">Обновить</button>
+      </div>
+      <div class="id-label" style="margin-bottom:12px;">Данные от жителей с подключённым Spotify. Превью — 30 секунд.</div>
+      <div class="sp-charts-grid">
+        <div class="sp-card">
+          <h3>🟢 Сейчас слушают <span class="sp-chip" id="chartsListeningCount">0</span></h3>
+          <div id="chartsNowList"></div>
+        </div>
+        <div class="sp-card">
+          <h3>🔥 Популярные треки</h3>
+          <div id="chartsTopTracks"></div>
+        </div>
+        <div class="sp-card">
+          <h3>🎤 Популярные артисты</h3>
+          <div id="chartsTopArtists"></div>
+        </div>
+        <div class="sp-card">
+          <h3>👑 Больше всех слушают</h3>
+          <div id="chartsTopListeners"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="view" id="view-me">
     <div class="panel" id="meLoggedOutBox" style="display:none;">
       <div class="empty-list" style="padding:40px 10px;">Войди в систему, чтобы увидеть свой профиль</div>
@@ -1749,6 +1794,33 @@
           <div style="margin-top:6px;"><div class="field-label">Титул бойни</div><div class="balance-num" id="meFightTitle" style="font-size:14px;">Богатырь</div></div>
           <button class="btn" id="sendMoneyBtn" style="margin-top:10px;">Отправить перевод</button>
         </div>
+
+        <div class="sp-card" id="spotifyBox">
+          <h3><span style="font-size:20px;">🎧</span> Spotify</h3>
+          <div id="spotifyStatus" class="id-label" style="color:rgba(255,255,255,.7);margin-bottom:10px;">Не подключён</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+            <button class="btn sp-btn" id="spotifyConnectBtn" style="font-size:12px;padding:8px 12px;">Интеграция Spotify</button>
+            <button class="btn btn-ghost" id="spotifyDisconnectBtn" style="font-size:12px;padding:8px 12px;display:none;color:#fff!important;border-color:#444!important;">Отключить</button>
+            <button class="btn btn-ghost" id="spotifySyncBtn" style="font-size:12px;padding:8px 12px;display:none;color:#fff!important;border-color:#444!important;">Синхронизировать</button>
+          </div>
+          <div class="form-group" style="margin-bottom:8px;">
+            <label style="color:rgba(255,255,255,.7);font-size:11px;">Client ID (из developer.spotify.com)</label>
+            <input id="spotifyClientIdInput" placeholder="вставь Client ID" style="width:100%;background:#000;color:#fff;border:1px solid #333;">
+          </div>
+          <div id="spotifyConnectedPanel" style="display:none;">
+            <div class="form-group">
+              <label style="color:rgba(255,255,255,.7);font-size:11px;">Ссылка на плейлист для профиля</label>
+              <div style="display:flex;gap:6px;">
+                <input id="spotifyPlaylistInput" placeholder="https://open.spotify.com/playlist/..." style="flex:1;background:#000;color:#fff;border:1px solid #333;">
+                <button class="btn sp-btn" id="spotifySavePlaylistBtn" style="font-size:11px;padding:8px 10px;">Сохранить</button>
+              </div>
+            </div>
+            <div id="spotifyNowPlayingBox" style="margin-top:10px;"></div>
+            <div id="spotifyTopArtistsBox" style="margin-top:10px;"></div>
+            <div id="spotifyPlaylistBox" style="margin-top:10px;"></div>
+          </div>
+        </div>
+
         <div style="margin-top:14px;">
           <div class="field-label">Описание профиля</div>
           <textarea id="meBioInput" placeholder="Напиши о себе..." rows="2" style="width:100%; margin-top:4px;"></textarea>
@@ -2388,6 +2460,7 @@
   <button data-view="exchange">Обмен</button>
   <button data-view="richest">Богачи</button>
   <button data-view="event" id="tabEventMobile" style="display:none; color:var(--amber);">Ивент</button>
+  <button data-view="charts">Чарты</button>
   <button data-view="me">Я</button>
   <button data-view="adminpanel" id="mobileAdminTab" style="display:none;">Админ</button>
 </div>
@@ -2496,6 +2569,7 @@
   </div>
 </div>
 
+<audio id="spPreviewAudio" preload="none"></audio>
 <div class="toast" id="toast"></div>
 
 <!-- PASSWORD MODAL -->
@@ -3474,6 +3548,7 @@ function switchView(name){
   if(name === 'battlepass'){ renderBattlePass(); }
   if(name === 'funzone'){ renderFunZone(); }
   if(name === 'school'){ try{renderSchool();}catch(e){console.error(e);} }
+  if(name === 'charts'){ try{renderMusicCharts();}catch(e){console.error(e);} }
   if(name === 'videos'){ try{renderVideoFeed();}catch(e){console.error(e);} }
   if(name === 'contracts'){ renderContracts(); }
   if(name === 'shops'){ renderShops(); }
@@ -4304,6 +4379,8 @@ function renderMeTab(){
   }
   loggedOutBox.style.display = 'none';
   loggedInBox.style.display = 'block';
+  try{ renderSpotifyMeUI(); }catch(e){ console.warn(e); }
+
 
   {
     const border = me.avatarBorder ? ` avatar-border-${me.avatarBorder}` : '';
@@ -8670,8 +8747,27 @@ function openPublicProfile(cid){
     <div style="margin-top:12px; padding:12px; background:rgba(0,0,0,0.35); border-radius:10px; font-size:13px; color:rgba(255,255,255,0.9);">
       ${escapeHtml(c.bio || 'Описание не указано')}
     </div>
+    ${c.spotify ? `<div class="sp-card" style="margin-top:12px;">
+      <h3>🎧 Spotify ${c.spotify.displayName?('· '+escapeHtml(c.spotify.displayName)) : ''}</h3>
+      ${c.spotify.nowPlaying && c.spotify.nowPlaying.name ? `<div class="sp-track sp-now">
+        ${c.spotify.nowPlaying.albumArt?`<img src="${escapeHtml(c.spotify.nowPlaying.albumArt)}">`:''}
+        <div class="sp-meta"><div class="sp-title">${escapeHtml(c.spotify.nowPlaying.name)}</div>
+        <div class="sp-artist">${escapeHtml(c.spotify.nowPlaying.artists||'')}${c.spotify.nowPlaying.isPlaying?' · играет':''}</div></div>
+        <button class="btn btn-ghost" data-sp-preview="${c.spotify.nowPlaying.previewUrl?escapeHtml(c.spotify.nowPlaying.previewUrl):''}" style="font-size:11px;padding:6px 8px;color:#1db954!important;border-color:#1db95455!important;">▶ 30с</button>
+      </div>` : ''}
+      ${(c.spotify.topArtists||[]).length?`<div style="margin-top:8px;">${(c.spotify.topArtists||[]).slice(0,5).map(a=>`<span class="sp-chip" style="margin:0 4px 4px 0;">${escapeHtml(a.name)}</span>`).join('')}</div>`:''}
+      ${c.spotify.playlist?`<div class="id-label" style="margin-top:8px;color:rgba(255,255,255,.75);">Плейлист: <a class="sp-green" href="${escapeHtml(c.spotify.playlist.url||'#')}" target="_blank" rel="noopener">${escapeHtml(c.spotify.playlist.name||'открыть')}</a></div>
+        ${(c.spotify.playlist.tracks||[]).slice(0,5).map(t=>`<div class="sp-track">
+          ${t.albumArt?`<img src="${escapeHtml(t.albumArt)}">`:''}
+          <div class="sp-meta"><div class="sp-title">${escapeHtml(t.name)}</div><div class="sp-artist">${escapeHtml(t.artists||'')}</div></div>
+          <button class="btn btn-ghost" data-sp-preview="${t.previewUrl?escapeHtml(t.previewUrl):''}" style="font-size:11px;padding:6px 8px;color:#1db954!important;border-color:#1db95455!important;">▶ 30с</button>
+        </div>`).join('')}`:''}
+    </div>` : ''}
   `;
   modal.classList.add('show');
+  body.querySelectorAll('[data-sp-preview]').forEach(b=>{
+    b.addEventListener('click',()=>spPlayPreview(b.getAttribute('data-sp-preview'), b));
+  });
 }
 document.getElementById('publicProfileClose')?.addEventListener('click', () => {
   document.getElementById('publicProfileModal')?.classList.remove('show');
@@ -11189,6 +11285,440 @@ function renderVideoFeed(){
     try{ await deleteDoc(doc(db,'videos',b.dataset.delVid)); showToast('Удалено'); }catch(e){ showToast('Ошибка'); }
   }));
 }
+
+
+/* ===================== SPOTIFY INTEGRATION ===================== */
+const SPOTIFY_SCOPES = [
+  'user-read-currently-playing',
+  'user-read-playback-state',
+  'user-top-read',
+  'user-read-recently-played',
+  'playlist-read-private',
+  'playlist-read-collaborative',
+  'user-read-email'
+].join(' ');
+const SP_LS_TOKEN = 'gid_sp_access';
+const SP_LS_REFRESH = 'gid_sp_refresh'; // not used in implicit; PKCE stores code verifier
+const SP_LS_VERIFIER = 'gid_sp_verifier';
+const SP_LS_CLIENT = 'gid_sp_client_id';
+const SP_LS_EXPIRES = 'gid_sp_expires';
+
+function spGetClientId(){
+  const inp=document.getElementById('spotifyClientIdInput');
+  const fromInput=(inp?.value||'').trim();
+  if(fromInput){ try{ localStorage.setItem(SP_LS_CLIENT, fromInput); }catch(e){} return fromInput; }
+  try{ return (localStorage.getItem(SP_LS_CLIENT)||'').trim(); }catch(e){ return ''; }
+}
+function spRedirectUri(){
+  // exact URL without hash
+  return window.location.origin + window.location.pathname;
+}
+function spRandomString(len){
+  const a=new Uint8Array(len);
+  crypto.getRandomValues(a);
+  return Array.from(a, b=>('0'+b.toString(16)).slice(-2)).join('').slice(0,len);
+}
+async function spSha256(plain){
+  const data=new TextEncoder().encode(plain);
+  const hash=await crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCharCode(...new Uint8Array(hash))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function spGetToken(){
+  try{
+    const exp=Number(localStorage.getItem(SP_LS_EXPIRES)||0);
+    const tok=localStorage.getItem(SP_LS_TOKEN)||'';
+    if(!tok) return null;
+    if(exp && Date.now()>exp) return null;
+    return tok;
+  }catch(e){ return null; }
+}
+function spSetToken(access, expiresIn){
+  try{
+    localStorage.setItem(SP_LS_TOKEN, access);
+    localStorage.setItem(SP_LS_EXPIRES, String(Date.now()+ (Number(expiresIn)||3600)*1000 - 30000));
+  }catch(e){}
+}
+function spClearToken(){
+  try{
+    localStorage.removeItem(SP_LS_TOKEN);
+    localStorage.removeItem(SP_LS_EXPIRES);
+    localStorage.removeItem(SP_LS_VERIFIER);
+  }catch(e){}
+}
+
+async function spotifyConnect(){
+  const clientId=spGetClientId();
+  if(!clientId){ showToast('Вставь Spotify Client ID'); return; }
+  const verifier=spRandomString(64);
+  try{ localStorage.setItem(SP_LS_VERIFIER, verifier); }catch(e){}
+  const challenge=await spSha256(verifier);
+  const params=new URLSearchParams({
+    client_id: clientId,
+    response_type: 'code',
+    redirect_uri: spRedirectUri(),
+    scope: SPOTIFY_SCOPES,
+    code_challenge_method: 'S256',
+    code_challenge: challenge,
+    show_dialog: 'true'
+  });
+  window.location.href='https://accounts.spotify.com/authorize?'+params.toString();
+}
+
+async function spExchangeCode(code){
+  const clientId=spGetClientId();
+  const verifier=localStorage.getItem(SP_LS_VERIFIER)||'';
+  const body=new URLSearchParams({
+    client_id: clientId,
+    grant_type: 'authorization_code',
+    code,
+    redirect_uri: spRedirectUri(),
+    code_verifier: verifier
+  });
+  const res=await fetch('https://accounts.spotify.com/api/token', {
+    method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body
+  });
+  if(!res.ok) throw new Error('token '+res.status);
+  const data=await res.json();
+  spSetToken(data.access_token, data.expires_in);
+  try{ localStorage.removeItem(SP_LS_VERIFIER); }catch(e){}
+  return data.access_token;
+}
+
+async function spApi(path, opts){
+  const tok=spGetToken();
+  if(!tok) throw new Error('no token');
+  const res=await fetch('https://api.spotify.com/v1'+path, {
+    ...(opts||{}),
+    headers:{
+      'Authorization':'Bearer '+tok,
+      'Content-Type':'application/json',
+      ...((opts&&opts.headers)||{})
+    }
+  });
+  if(res.status===401){ spClearToken(); throw new Error('unauthorized'); }
+  if(res.status===204) return null;
+  if(!res.ok){
+    const t=await res.text().catch(()=>'');
+    throw new Error('api '+res.status+' '+t.slice(0,120));
+  }
+  return res.json();
+}
+
+function spExtractPlaylistId(url){
+  if(!url) return null;
+  const m=String(url).match(/playlist[/:]([a-zA-Z0-9]+)/);
+  return m?m[1]:null;
+}
+
+let spPreviewAudio=null;
+function spPlayPreview(url, btn){
+  if(!url){ showToast('У трека нет 30с превью'); return; }
+  const audio=document.getElementById('spPreviewAudio');
+  if(!audio) return;
+  if(spPreviewAudio===url && !audio.paused){
+    audio.pause();
+    if(btn) btn.textContent='▶ 30с';
+    spPreviewAudio=null;
+    return;
+  }
+  audio.src=url;
+  audio.play().then(()=>{
+    spPreviewAudio=url;
+    if(btn) btn.textContent='⏸';
+    showToast('Превью 30 сек');
+  }).catch(()=>showToast('Не удалось воспроизвести'));
+  audio.onended=()=>{ if(btn) btn.textContent='▶ 30с'; spPreviewAudio=null; };
+}
+
+function spTrackRow(t, extra){
+  if(!t) return '';
+  const img=(t.album&&t.album.images&&t.album.images[2]?.url)||(t.album&&t.album.images&&t.album.images[0]?.url)||'';
+  const artists=(t.artists||[]).map(a=>a.name).join(', ');
+  const preview=t.preview_url||'';
+  const name=t.name||'Трек';
+  return `<div class="sp-track ${extra||''}">
+    ${img?`<img src="${escapeHtml(img)}" alt="">`:`<div style="width:48px;height:48px;border-radius:6px;background:#333;"></div>`}
+    <div class="sp-meta">
+      <div class="sp-title">${escapeHtml(name)}</div>
+      <div class="sp-artist">${escapeHtml(artists)}</div>
+    </div>
+    <button class="btn btn-ghost" data-sp-preview="${preview?escapeHtml(preview):''}" style="font-size:11px;padding:6px 8px;color:#1db954!important;border-color:#1db95455!important;" ${preview?'':'disabled'}>▶ 30с</button>
+  </div>`;
+}
+
+async function spSyncToProfile(){
+  if(!loggedInCitizenId || !spGetToken()) return;
+  try{
+    const meSp=await spApi('/me');
+    let now=null;
+    try{
+      const cur=await spApi('/me/player/currently-playing');
+      if(cur && cur.item){
+        now={
+          name: cur.item.name,
+          artists: (cur.item.artists||[]).map(a=>a.name).join(', '),
+          albumArt: cur.item.album?.images?.[2]?.url || cur.item.album?.images?.[0]?.url || '',
+          previewUrl: cur.item.preview_url || '',
+          isPlaying: !!cur.is_playing,
+          uri: cur.item.uri || '',
+          updatedAt: Date.now()
+        };
+      }
+    }catch(e){}
+    let topArtists=[];
+    try{
+      const top=await spApi('/me/top/artists?limit=5&time_range=short_term');
+      topArtists=(top.items||[]).map(a=>({name:a.name, image:a.images?.[2]?.url||a.images?.[0]?.url||'', id:a.id}));
+    }catch(e){}
+    let topTracks=[];
+    try{
+      const tt=await spApi('/me/top/tracks?limit=5&time_range=short_term');
+      topTracks=(tt.items||[]).map(t=>({
+        name:t.name,
+        artists:(t.artists||[]).map(a=>a.name).join(', '),
+        previewUrl:t.preview_url||'',
+        albumArt:t.album?.images?.[2]?.url||'',
+        id:t.id
+      }));
+    }catch(e){}
+    const payload={
+      spotify: {
+        connected: true,
+        displayName: meSp?.display_name || meSp?.id || '',
+        userId: meSp?.id || '',
+        nowPlaying: now,
+        topArtists,
+        topTracks,
+        listenScore: (Number(citizens.find(c=>c.id===loggedInCitizenId)?.spotify?.listenScore)||0) + (now?.isPlaying?1:0),
+        lastSync: Date.now()
+      }
+    };
+    // preserve playlist if any
+    const me=citizens.find(c=>c.id===loggedInCitizenId);
+    if(me?.spotify?.playlist){
+      payload.spotify.playlist=me.spotify.playlist;
+    }
+    await updateDoc(doc(db,'citizens',loggedInCitizenId), payload);
+    if(me) me.spotify=payload.spotify;
+    renderSpotifyMeUI();
+    showToast('Spotify синхронизирован');
+  }catch(e){
+    console.error(e);
+    showToast('Синхронизация: '+(e.message||'ошибка'));
+  }
+}
+
+async function spSavePlaylist(){
+  if(!loggedInCitizenId) return showToast('ВОЙДИ');
+  const url=(document.getElementById('spotifyPlaylistInput')?.value||'').trim();
+  const pid=spExtractPlaylistId(url);
+  if(!pid) return showToast('Вставь ссылку на плейлист Spotify');
+  try{
+    let playlist={ id:pid, url:url.startsWith('http')?url:('https://open.spotify.com/playlist/'+pid), name:'Плейлист', image:'', tracks:[] };
+    if(spGetToken()){
+      const pl=await spApi('/playlists/'+pid);
+      playlist.name=pl.name||playlist.name;
+      playlist.image=pl.images?.[0]?.url||'';
+      const items=(pl.tracks?.items||[]).slice(0,15);
+      playlist.tracks=items.map(it=>{
+        const t=it.track; if(!t) return null;
+        return { name:t.name, artists:(t.artists||[]).map(a=>a.name).join(', '), previewUrl:t.preview_url||'', albumArt:t.album?.images?.[2]?.url||'', id:t.id };
+      }).filter(Boolean);
+    }
+    const me=citizens.find(c=>c.id===loggedInCitizenId);
+    const spotify={...(me?.spotify||{}), connected:!!spGetToken(), playlist};
+    await updateDoc(doc(db,'citizens',loggedInCitizenId),{spotify});
+    if(me) me.spotify=spotify;
+    renderSpotifyMeUI();
+    showToast('Плейлист на профиле');
+  }catch(e){
+    console.error(e);
+    showToast('Не удалось сохранить плейлист');
+  }
+}
+
+function renderSpotifyMeUI(){
+  const st=document.getElementById('spotifyStatus');
+  const conn=document.getElementById('spotifyConnectedPanel');
+  const dis=document.getElementById('spotifyDisconnectBtn');
+  const sync=document.getElementById('spotifySyncBtn');
+  const tok=spGetToken();
+  const me=citizens.find(c=>c.id===loggedInCitizenId);
+  const cid=spGetClientId();
+  const inp=document.getElementById('spotifyClientIdInput');
+  if(inp && cid && !inp.value) inp.value=cid;
+
+  if(tok){
+    if(st) st.textContent='Подключён'+(me?.spotify?.displayName?(' · '+me.spotify.displayName):'');
+    if(conn) conn.style.display='block';
+    if(dis) dis.style.display='';
+    if(sync) sync.style.display='';
+  } else {
+    if(st) st.textContent=me?.spotify?.connected ? 'Был подключён — нажми Интеграция снова' : 'Не подключён · нужен Client ID из developer.spotify.com';
+    if(conn) conn.style.display= me?.spotify?.playlist ? 'block' : 'none';
+    if(dis) dis.style.display='none';
+    if(sync) sync.style.display='none';
+  }
+  if(me?.spotify?.playlist?.url && document.getElementById('spotifyPlaylistInput')){
+    document.getElementById('spotifyPlaylistInput').value=me.spotify.playlist.url;
+  }
+  const nowBox=document.getElementById('spotifyNowPlayingBox');
+  if(nowBox){
+    const np=me?.spotify?.nowPlaying;
+    if(np && np.name){
+      nowBox.innerHTML=`<div class="id-label sp-green" style="margin-bottom:6px;">Сейчас слушает</div>
+        <div class="sp-track sp-now">
+          ${np.albumArt?`<img src="${escapeHtml(np.albumArt)}">`:'<div style="width:48px;height:48px;background:#333;border-radius:6px;"></div>'}
+          <div class="sp-meta"><div class="sp-title">${escapeHtml(np.name)}</div><div class="sp-artist">${escapeHtml(np.artists||'')}</div></div>
+          <button class="btn btn-ghost" data-sp-preview="${np.previewUrl?escapeHtml(np.previewUrl):''}" style="font-size:11px;padding:6px 8px;color:#1db954!important;border-color:#1db95455!important;">▶ 30с</button>
+        </div>`;
+    } else nowBox.innerHTML='';
+  }
+  const topBox=document.getElementById('spotifyTopArtistsBox');
+  if(topBox){
+    const arts=me?.spotify?.topArtists||[];
+    if(arts.length){
+      topBox.innerHTML=`<div class="id-label sp-green" style="margin-bottom:6px;">Топ артисты</div>`+
+        arts.map(a=>`<span class="sp-chip" style="margin:0 6px 6px 0;">${escapeHtml(a.name)}</span>`).join('');
+    } else topBox.innerHTML='';
+  }
+  const plBox=document.getElementById('spotifyPlaylistBox');
+  if(plBox){
+    const pl=me?.spotify?.playlist;
+    if(pl && (pl.tracks||[]).length){
+      plBox.innerHTML=`<div class="id-label sp-green" style="margin-bottom:6px;">Плейлист: ${escapeHtml(pl.name||'')}</div>`+
+        pl.tracks.slice(0,8).map(t=>`<div class="sp-track">
+          ${t.albumArt?`<img src="${escapeHtml(t.albumArt)}">`:'<div style="width:48px;height:48px;background:#333;border-radius:6px;"></div>'}
+          <div class="sp-meta"><div class="sp-title">${escapeHtml(t.name)}</div><div class="sp-artist">${escapeHtml(t.artists||'')}</div></div>
+          <button class="btn btn-ghost" data-sp-preview="${t.previewUrl?escapeHtml(t.previewUrl):''}" style="font-size:11px;padding:6px 8px;color:#1db954!important;border-color:#1db95455!important;" ${t.previewUrl?'':'disabled'}>▶ 30с</button>
+        </div>`).join('');
+    } else if(pl){
+      plBox.innerHTML=`<div class="id-label">Плейлист сохранён · <a class="sp-green" href="${escapeHtml(pl.url)}" target="_blank" rel="noopener">открыть в Spotify</a></div>`;
+    } else plBox.innerHTML='';
+  }
+  document.querySelectorAll('#spotifyBox [data-sp-preview]').forEach(b=>{
+    b.addEventListener('click',()=>spPlayPreview(b.getAttribute('data-sp-preview'), b));
+  });
+}
+
+function renderMusicCharts(){
+  const nowList=document.getElementById('chartsNowList');
+  const topTracks=document.getElementById('chartsTopTracks');
+  const topArtists=document.getElementById('chartsTopArtists');
+  const topListeners=document.getElementById('chartsTopListeners');
+  const cnt=document.getElementById('chartsListeningCount');
+  if(!nowList) return;
+
+  const withSp=citizens.filter(c=>c.spotify && (c.spotify.connected || c.spotify.nowPlaying || c.spotify.topTracks));
+  const listening=withSp.filter(c=>c.spotify?.nowPlaying?.isPlaying && c.spotify.nowPlaying.name && (Date.now()-(c.spotify.nowPlaying.updatedAt||0)<15*60*1000));
+  if(cnt) cnt.textContent=String(listening.length);
+
+  if(nowList){
+    nowList.innerHTML=listening.length?listening.map(c=>`<div class="sp-track sp-now">
+      ${c.spotify.nowPlaying.albumArt?`<img src="${escapeHtml(c.spotify.nowPlaying.albumArt)}">`:'<div style="width:48px;height:48px;background:#333;border-radius:6px;"></div>'}
+      <div class="sp-meta">
+        <div class="sp-title">${escapeHtml(c.spotify.nowPlaying.name)}</div>
+        <div class="sp-artist">${escapeHtml(c.nickname||c.name)} · ${escapeHtml(c.spotify.nowPlaying.artists||'')}</div>
+      </div>
+      <button class="btn btn-ghost" data-sp-preview="${c.spotify.nowPlaying.previewUrl?escapeHtml(c.spotify.nowPlaying.previewUrl):''}" style="font-size:11px;padding:6px 8px;color:#1db954!important;border-color:#1db95455!important;">▶ 30с</button>
+    </div>`).join(''):'<div class="id-label" style="opacity:.7;">Никто не слушает прямо сейчас (нужен sync)</div>';
+  }
+
+  // aggregate tracks
+  const trackMap={};
+  withSp.forEach(c=>{
+    (c.spotify.topTracks||[]).forEach(t=>{
+      if(!t.name) return;
+      const key=(t.id||t.name)+'|'+(t.artists||'');
+      if(!trackMap[key]) trackMap[key]={...t, score:0};
+      trackMap[key].score++;
+    });
+    if(c.spotify.nowPlaying?.name){
+      const t=c.spotify.nowPlaying;
+      const key='now|'+t.name+'|'+(t.artists||'');
+      if(!trackMap[key]) trackMap[key]={name:t.name,artists:t.artists,previewUrl:t.previewUrl,albumArt:t.albumArt,score:0};
+      trackMap[key].score+=2;
+    }
+  });
+  const tracks=Object.values(trackMap).sort((a,b)=>b.score-a.score).slice(0,10);
+  if(topTracks){
+    topTracks.innerHTML=tracks.length?tracks.map((t,i)=>`<div class="sp-track">
+      <div style="width:24px;text-align:center;opacity:.6;font-weight:700;">${i+1}</div>
+      ${t.albumArt?`<img src="${escapeHtml(t.albumArt)}">`:'<div style="width:48px;height:48px;background:#333;border-radius:6px;"></div>'}
+      <div class="sp-meta"><div class="sp-title">${escapeHtml(t.name)}</div><div class="sp-artist">${escapeHtml(t.artists||'')} · ${t.score} чел.</div></div>
+      <button class="btn btn-ghost" data-sp-preview="${t.previewUrl?escapeHtml(t.previewUrl):''}" style="font-size:11px;padding:6px 8px;color:#1db954!important;border-color:#1db95455!important;">▶ 30с</button>
+    </div>`).join(''):'<div class="id-label" style="opacity:.7;">Пока пусто</div>';
+  }
+
+  const artMap={};
+  withSp.forEach(c=>{
+    (c.spotify.topArtists||[]).forEach(a=>{
+      if(!a.name) return;
+      if(!artMap[a.name]) artMap[a.name]={name:a.name,image:a.image,score:0};
+      artMap[a.name].score++;
+    });
+  });
+  const arts=Object.values(artMap).sort((a,b)=>b.score-a.score).slice(0,10);
+  if(topArtists){
+    topArtists.innerHTML=arts.length?arts.map((a,i)=>`<div class="sp-track">
+      <div style="width:24px;text-align:center;opacity:.6;font-weight:700;">${i+1}</div>
+      ${a.image?`<img src="${escapeHtml(a.image)}" style="border-radius:50%;">`:'<div style="width:48px;height:48px;background:#333;border-radius:50%;"></div>'}
+      <div class="sp-meta"><div class="sp-title">${escapeHtml(a.name)}</div><div class="sp-artist">${a.score} слушателей</div></div>
+    </div>`).join(''):'<div class="id-label" style="opacity:.7;">Пока пусто</div>';
+  }
+
+  const listeners=withSp.map(c=>({
+    id:c.id,
+    name:c.nickname||c.name,
+    score:Number(c.spotify.listenScore)||((c.spotify.topTracks||[]).length+(c.spotify.topArtists||[]).length)
+  })).sort((a,b)=>b.score-a.score).slice(0,10);
+  if(topListeners){
+    topListeners.innerHTML=listeners.length?listeners.map((p,i)=>`<div class="sp-track">
+      <div style="width:24px;text-align:center;opacity:.6;font-weight:700;">${i+1}</div>
+      <div class="sp-meta"><div class="sp-title">${escapeHtml(p.name)}</div><div class="sp-artist">очки прослушивания: ${p.score}</div></div>
+    </div>`).join(''):'<div class="id-label" style="opacity:.7;">Пока пусто</div>';
+  }
+
+  document.querySelectorAll('#view-charts [data-sp-preview]').forEach(b=>{
+    b.addEventListener('click',()=>spPlayPreview(b.getAttribute('data-sp-preview'), b));
+  });
+}
+
+// OAuth return handler
+(async function spHandleRedirect(){
+  try{
+    const q=new URLSearchParams(window.location.search);
+    const code=q.get('code');
+    const err=q.get('error');
+    if(err){ showToast('Spotify: '+err); return; }
+    if(!code) return;
+    await spExchangeCode(code);
+    // clean URL
+    const clean=window.location.origin+window.location.pathname+window.location.hash;
+    window.history.replaceState({}, document.title, clean);
+    showToast('Spotify подключён');
+    if(loggedInCitizenId) await spSyncToProfile();
+    renderSpotifyMeUI();
+  }catch(e){ console.error(e); try{ showToast('OAuth ошибка'); }catch(_){} }
+})();
+
+document.getElementById('spotifyConnectBtn')?.addEventListener('click', ()=>spotifyConnect());
+document.getElementById('spotifyDisconnectBtn')?.addEventListener('click', ()=>{
+  spClearToken();
+  renderSpotifyMeUI();
+  showToast('Spotify отключён на этом устройстве');
+});
+document.getElementById('spotifySyncBtn')?.addEventListener('click', ()=>spSyncToProfile());
+document.getElementById('spotifySavePlaylistBtn')?.addEventListener('click', ()=>spSavePlaylist());
+document.getElementById('chartsRefreshBtn')?.addEventListener('click', ()=>{
+  if(spGetToken() && loggedInCitizenId) spSyncToProfile().then(()=>renderMusicCharts());
+  else renderMusicCharts();
+});
+
+// hook into renderMeTab
+const _renderMeTabSp = typeof renderMeTab === 'function' ? renderMeTab : null;
 
 let lastMsgNotifyId=null;
 setInterval(()=>{
