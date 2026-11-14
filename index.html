@@ -2,7 +2,14 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ff4d8d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Гидрибсия">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>ГИДРИБСИЯ 💕🐱</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
@@ -237,6 +244,7 @@
   .sp-btn:hover{filter:brightness(1.08);}
   .sp-track{display:flex;gap:10px;align-items:center;padding:8px;border-radius:10px;background:rgba(255,255,255,.06);margin-bottom:8px;}
   .sp-track img{width:48px;height:48px;border-radius:6px;object-fit:cover;background:#333;}
+  .sp-track img.sp-broken{opacity:.35;}
   .sp-track .sp-meta{flex:1;min-width:0;}
   .sp-track .sp-title{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .sp-track .sp-artist{font-size:11px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -259,18 +267,6 @@
   .alltabs-search-row input{flex:1;min-width:160px;}
 
   
-  .call-overlay{position:fixed;inset:0;z-index:200;background:rgba(5,10,15,.92);display:none;align-items:center;justify-content:center;padding:16px;}
-  .call-overlay.show{display:flex;}
-  .call-box{width:min(420px,100%);background:var(--bg-panel);border:1px solid var(--line);border-radius:20px;padding:20px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.45);}
-  .call-box h3{margin:0 0 6px;font-size:18px;}
-  .call-status{font-size:13px;color:var(--text-dim);margin-bottom:14px;}
-  .call-videos{display:grid;grid-template-columns:1fr;gap:10px;margin:12px 0;}
-  .call-videos.video-on{grid-template-columns:1fr 1fr;}
-  .call-videos video{width:100%;max-height:180px;background:#000;border-radius:12px;object-fit:cover;}
-  .call-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px;}
-  .call-actions .btn{min-width:110px;}
-  .btn-call{background:linear-gradient(135deg,#22c55e,#16a34a)!important;color:#fff!important;border:none!important;}
-  .btn-hang{background:linear-gradient(135deg,#ef4444,#b91c1c)!important;color:#fff!important;border:none!important;}
 
   .energy-bar{
     border-radius: 8px !important;
@@ -1794,7 +1790,7 @@
       <div class="panel-title"><span>🎵 Чарты Гидрибсии (Last.fm)</span>
         <button class="btn btn-ghost" id="chartsRefreshBtn" style="font-size:11px;padding:6px 10px;">Обновить</button>
       </div>
-      <div class="id-label" style="margin-bottom:12px;">Данные Last.fm от жителей. Превью 30с — через Deezer.</div>
+      <div class="id-label" style="margin-bottom:12px;">Данные Last.fm от жителей. Превью 30с — iTunes/Deezer.</div>
       <div class="sp-charts-grid">
         <div class="sp-card">
           <h3>🟢 Сейчас слушают <span class="sp-chip" id="chartsListeningCount">0</span></h3>
@@ -1841,7 +1837,7 @@
         </div>
 
                 <div class="sp-card" id="spotifyBox">
-          <h3><span style="font-size:20px;">🎧</span> Музыка (Last.fm + Deezer)</h3>
+          <h3><span style="font-size:20px;">🎧</span> Музыка (Last.fm + превью)</h3>
           <div id="spotifyStatus" class="id-label" style="color:rgba(255,255,255,.7);margin-bottom:10px;">Привяжи Last.fm — без Premium и без входа в Spotify</div>
           <div class="form-group" style="margin-bottom:8px;">
             <label style="color:rgba(255,255,255,.7);font-size:11px;">Last.fm API Key (free с last.fm/api)</label>
@@ -2623,22 +2619,6 @@
 
 <audio id="spPreviewAudio" preload="none"></audio>
 
-<div class="call-overlay" id="callOverlay">
-  <div class="call-box">
-    <h3 id="callTitle">Звонок</h3>
-    <div class="call-status" id="callStatus">Соединение...</div>
-    <div class="call-videos" id="callVideos">
-      <video id="callRemoteVideo" autoplay playsinline></video>
-      <video id="callLocalVideo" autoplay playsinline muted></video>
-    </div>
-    <div class="call-actions">
-      <button class="btn btn-call" id="callAcceptBtn" style="display:none;">Принять</button>
-      <button class="btn btn-ghost" id="callMuteBtn">Микрофон</button>
-      <button class="btn btn-ghost" id="callCamBtn">Видео</button>
-      <button class="btn btn-hang" id="callHangBtn">Сбросить</button>
-    </div>
-  </div>
-</div>
 
 <div class="toast" id="toast"></div>
 
@@ -11387,50 +11367,131 @@ async function lfApi(method, params){
   return data;
 }
 
+function lfPickImage(imgArr){
+  if(!imgArr) return '';
+  const arr=Array.isArray(imgArr)?imgArr:[imgArr];
+  // Last.fm: sizes small/medium/large/extralarge/mega — empty or placeholder star = нет обложки
+  const prefer=['extralarge','mega','large','medium','small',''];
+  for(const size of prefer){
+    for(const im of arr){
+      if(!im) continue;
+      if(size && im.size!==size) continue;
+      const u=(im['#text']||im.text||'').trim();
+      if(!u || !/^https?:\/\//i.test(u)) continue;
+      if(u.includes('2a96f9d0adae') || u.includes('/images/red_stars') || u.includes('default_album')) continue;
+      return u;
+    }
+  }
+  return '';
+}
+
+async function itunesSearchPreview(track, artist){
+  try{
+    const term=encodeURIComponent(((track||'')+' '+(artist||'')).trim());
+    if(!term) return { preview:'', cover:'' };
+    // iTunes Search API — работает из браузера (CORS ok), даёт 30с previewUrl + artwork
+    const url='https://itunes.apple.com/search?term='+term+'&media=music&entity=song&limit=5';
+    const res=await fetch(url);
+    if(!res.ok) return { preview:'', cover:'' };
+    const data=await res.json();
+    const results=data.results||[];
+    if(!results.length) return { preview:'', cover:'' };
+    // лучшее совпадение по имени
+    const tl=(track||'').toLowerCase();
+    const al=(artist||'').toLowerCase();
+    let best=results[0];
+    for(const r of results){
+      const rn=(r.trackName||'').toLowerCase();
+      const ra=(r.artistName||'').toLowerCase();
+      if(tl && rn.includes(tl.slice(0,Math.min(12,tl.length)))) { best=r; break; }
+      if(al && ra.includes(al.slice(0,Math.min(10,al.length)))) best=r;
+    }
+    let cover=best.artworkUrl100||best.artworkUrl60||'';
+    if(cover) cover=cover.replace('100x100bb','300x300bb').replace('60x60bb','300x300bb');
+    return { preview: best.previewUrl||'', cover };
+  }catch(e){ return { preview:'', cover:'' }; }
+}
+
 async function deezerSearchPreview(track, artist){
   try{
-    const q=encodeURIComponent((track||'')+' '+(artist||''));
-    const res=await fetch('https://api.deezer.com/search?q='+q+'&limit=1');
+    const q=encodeURIComponent(((track||'')+' '+(artist||'')).trim());
+    // jsonp-like via cors — иногда блокируется; пробуем
+    const res=await fetch('https://api.deezer.com/search?q='+q+'&limit=3');
     if(!res.ok) return { preview:'', cover:'' };
     const data=await res.json();
     const item=(data.data&&data.data[0])||null;
     if(!item) return { preview:'', cover:'' };
     return {
       preview: item.preview || '',
-      cover: item.album?.cover_medium || item.album?.cover || ''
+      cover: item.album?.cover_xl || item.album?.cover_big || item.album?.cover_medium || item.album?.cover || ''
     };
   }catch(e){ return { preview:'', cover:'' }; }
 }
 
+async function lookupTrackMedia(track, artist){
+  // 1) iTunes (надёжнее в браузере) 2) Deezer fallback
+  let r=await itunesSearchPreview(track, artist);
+  if(!r.preview || !r.cover){
+    const d=await deezerSearchPreview(track, artist);
+    r={ preview: r.preview||d.preview||'', cover: r.cover||d.cover||'' };
+  }
+  return r;
+}
+
+function spImgFallback(img){ if(!img) return; img.classList.add('sp-broken'); img.onerror=null; img.src="data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"><rect width="48" height="48" fill="#333"/><text x="24" y="30" text-anchor="middle" fill="#888" font-size="18">♪</text></svg>'); }
+document.addEventListener('error', function(e){ if(e.target && e.target.tagName==='IMG' && e.target.closest('.sp-track')) spImgFallback(e.target); }, true);
+
 let spPreviewAudio=null;
 function spPlayPreview(url, btn){
-  if(!url){ showToast('Нет 30с превью'); return; }
+  if(!url){ showToast('Нет 30с превью для этого трека'); return; }
   const audio=document.getElementById('spPreviewAudio');
-  if(!audio) return;
+  if(!audio){ showToast('Аудиоплеер не найден'); return; }
   if(spPreviewAudio===url && !audio.paused){
     audio.pause();
     if(btn) btn.textContent='▶ 30с';
     spPreviewAudio=null;
     return;
   }
+  try{ audio.pause(); }catch(e){}
+  audio.crossOrigin='anonymous';
+  audio.preload='auto';
   audio.src=url;
-  audio.play().then(()=>{
-    spPreviewAudio=url;
-    if(btn) btn.textContent='⏸';
-    showToast('Превью 30 сек (Deezer)');
-  }).catch(()=>showToast('Не удалось воспроизвести'));
+  const playP=audio.play();
+  if(playP&&playP.then){
+    playP.then(()=>{
+      spPreviewAudio=url;
+      if(btn) btn.textContent='⏸';
+      showToast('Превью 30 сек');
+    }).catch((err)=>{
+      console.warn('preview play', err);
+      // retry without crossOrigin
+      audio.removeAttribute('crossOrigin');
+      audio.src=url;
+      audio.play().then(()=>{
+        spPreviewAudio=url;
+        if(btn) btn.textContent='⏸';
+        showToast('Превью 30 сек');
+      }).catch(()=>showToast('Браузер заблокировал превью'));
+    });
+  }
   audio.onended=()=>{ if(btn) btn.textContent='▶ 30с'; spPreviewAudio=null; };
+  audio.onerror=()=>{ if(btn) btn.textContent='▶ 30с'; showToast('Не удалось загрузить превью'); };
 }
 
 async function enrichWithDeezer(items){
   const out=[];
-  for(const t of items){
-    const dz=await deezerSearchPreview(t.name, t.artists);
+  for(const t of (items||[])){
+    const needPrev=!t.previewUrl;
+    const needCover=!t.albumArt || !String(t.albumArt).startsWith('http');
+    if(!needPrev && !needCover){ out.push(t); continue; }
+    const m=await lookupTrackMedia(t.name, t.artists);
     out.push({
       ...t,
-      previewUrl: t.previewUrl || dz.preview || '',
-      albumArt: t.albumArt || dz.cover || ''
+      previewUrl: t.previewUrl || m.preview || '',
+      albumArt: (t.albumArt && String(t.albumArt).startsWith('http') && !String(t.albumArt).includes('2a96f9d0adae')) ? t.albumArt : (m.cover || t.albumArt || '')
     });
+    // небольшая пауза чтобы не долбить API
+    await new Promise(r=>setTimeout(r, 120));
   }
   return out;
 }
@@ -11451,7 +11512,7 @@ async function lastfmSyncToProfile(){
     for(const t of arr){
       const name=t.name||'';
       const artists=t.artist?.['#text']||t.artist?.name||'';
-      const albumArt=(t.image||[]).slice().reverse().find(i=>i['#text'])?.['#text']||'';
+      const albumArt=lfPickImage(t.image);
       const isNow=t?.['@attr']?.nowplaying==='true';
       const row={ name, artists, albumArt, previewUrl:'', isPlaying:!!isNow };
       if(isNow && !nowPlaying) nowPlaying={ ...row, updatedAt:Date.now() };
@@ -11462,7 +11523,7 @@ async function lastfmSyncToProfile(){
     const topA=await lfApi('user.getTopArtists', { user, period:'7day', limit:'8' });
     let topArtists=(topA?.topartists?.artist||[]).map(a=>({
       name:a.name,
-      image:(a.image||[]).slice().reverse().find(i=>i['#text'])?.['#text']||'',
+      image:lfPickImage(a.image),
       playcount:Number(a.playcount)||0
     }));
 
@@ -11471,7 +11532,7 @@ async function lastfmSyncToProfile(){
     let topTracks=(topT?.toptracks?.track||[]).map(t=>({
       name:t.name,
       artists:t.artist?.name||t.artist?.['#text']||'',
-      albumArt:(t.image||[]).slice().reverse().find(i=>i['#text'])?.['#text']||'',
+      albumArt:lfPickImage(t.image),
       playcount:Number(t.playcount)||0,
       previewUrl:''
     }));
@@ -11485,7 +11546,7 @@ async function lastfmSyncToProfile(){
 
     // Deezer previews for now + top tracks (limit requests)
     if(nowPlaying){
-      const dz=await deezerSearchPreview(nowPlaying.name, nowPlaying.artists);
+      const dz=await lookupTrackMedia(nowPlaying.name, nowPlaying.artists);
       nowPlaying.previewUrl=dz.preview||'';
       if(dz.cover) nowPlaying.albumArt=dz.cover;
     }
@@ -11561,7 +11622,7 @@ function renderSpotifyMeUI(){
   const trBox=document.getElementById('spotifyTopTracksBox');
   if(trBox){
     const tr=me?.spotify?.topTracks||[];
-    trBox.innerHTML=tr.length?(`<div class="id-label sp-green" style="margin-bottom:6px;">Топ треки · превью Deezer</div>`+
+    trBox.innerHTML=tr.length?(`<div class="id-label sp-green" style="margin-bottom:6px;">Топ треки · превью 30с</div>`+
       tr.map(t=>`<div class="sp-track">
         ${t.albumArt?`<img src="${escapeHtml(t.albumArt)}">`:'<div style="width:48px;height:48px;background:#333;border-radius:6px;"></div>'}
         <div class="sp-meta"><div class="sp-title">${escapeHtml(t.name)}</div><div class="sp-artist">${escapeHtml(t.artists||'')}${t.playcount?(' · '+t.playcount):''}</div></div>
@@ -11738,7 +11799,7 @@ async function lastfmSilentTick(){
     if(!t) return;
     const name=t.name||'';
     const artists=t.artist?.['#text']||t.artist?.name||'';
-    const albumArt=(t.image||[]).slice().reverse().find(i=>i['#text'])?.['#text']||'';
+    const albumArt=lfPickImage(t.image);
     const isNow=t?.['@attr']?.nowplaying==='true';
     const me=citizens.find(c=>c.id===loggedInCitizenId);
     const prev=me?.spotify?.nowPlaying;
@@ -11747,7 +11808,7 @@ async function lastfmSilentTick(){
     let previewUrl=prev?.previewUrl||'';
     let art=albumArt||prev?.albumArt||'';
     if(isNow && (!previewUrl || prev?.name!==name)){
-      const dz=await deezerSearchPreview(name, artists);
+      const dz=await lookupTrackMedia(name, artists);
       previewUrl=dz.preview||previewUrl;
       if(dz.cover) art=dz.cover;
     }
@@ -11789,345 +11850,6 @@ document.getElementById('lastfmPlaylistSaveBtn')?.addEventListener('click', asyn
   }catch(e){ showToast('Ошибка сохранения'); }
 });
 
-
-
-/* ===================== WEBRTC VOICE + OPTIONAL VIDEO ===================== */
-const RTC_CONFIG = {
-  iceServers: [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' }
-  ]
-};
-let rtcPc = null;
-let rtcLocalStream = null;
-let rtcCallId = null;
-let rtcRole = null; // 'caller' | 'callee'
-let rtcUnsubCall = null;
-let rtcUnsubCand = null;
-let rtcMuted = false;
-let rtcVideoOn = false;
-let rtcIncoming = null;
-
-function rtcCallDocId(a, b){
-  return 'call_'+[a,b].sort().join('_');
-}
-function rtcSetStatus(t){
-  const el=document.getElementById('callStatus');
-  if(el) el.textContent=t;
-}
-function rtcShowOverlay(show){
-  document.getElementById('callOverlay')?.classList.toggle('show', !!show);
-}
-function rtcUpdateVideoLayout(){
-  const box=document.getElementById('callVideos');
-  if(box) box.classList.toggle('video-on', !!rtcVideoOn);
-}
-
-async function rtcEnsureMedia(wantVideo){
-  if(rtcLocalStream){
-    const v = rtcLocalStream.getVideoTracks()[0];
-    if(wantVideo && !v){
-      try{
-        const vs=await navigator.mediaDevices.getUserMedia({ video:true, audio:false });
-        const track=vs.getVideoTracks()[0];
-        rtcLocalStream.addTrack(track);
-        const lv=document.getElementById('callLocalVideo');
-        if(lv){ lv.srcObject=rtcLocalStream; }
-        return rtcLocalStream;
-      }catch(e){ showToast('Камера недоступна'); return rtcLocalStream; }
-    }
-    return rtcLocalStream;
-  }
-  rtcLocalStream = await navigator.mediaDevices.getUserMedia({
-    audio:true,
-    video: wantVideo ? { facingMode:'user', width:{ideal:640}, height:{ideal:480} } : false
-  });
-  const lv=document.getElementById('callLocalVideo');
-  if(lv){ lv.srcObject=rtcLocalStream; lv.muted=true; }
-  return rtcLocalStream;
-}
-
-function rtcCleanupPc(){
-  try{ rtcUnsubCall && rtcUnsubCall(); }catch(e){}
-  try{ rtcUnsubCand && rtcUnsubCand(); }catch(e){}
-  rtcUnsubCall=null; rtcUnsubCand=null;
-  if(rtcPc){
-    try{ rtcPc.onicecandidate=null; rtcPc.ontrack=null; rtcPc.close(); }catch(e){}
-  }
-  rtcPc=null;
-  if(rtcLocalStream){
-    rtcLocalStream.getTracks().forEach(t=>{ try{t.stop();}catch(e){} });
-  }
-  rtcLocalStream=null;
-  rtcCallId=null; rtcRole=null; rtcIncoming=null;
-  rtcMuted=false; rtcVideoOn=false;
-  const rv=document.getElementById('callRemoteVideo');
-  const lv=document.getElementById('callLocalVideo');
-  if(rv) rv.srcObject=null;
-  if(lv) lv.srcObject=null;
-  rtcUpdateVideoLayout();
-  document.getElementById('callAcceptBtn').style.display='none';
-  document.getElementById('callMuteBtn').textContent='Микрофон';
-  document.getElementById('callCamBtn').textContent='Видео';
-  rtcShowOverlay(false);
-}
-
-async function rtcHangup(remoteAlreadyEnded){
-  const id=rtcCallId;
-  const role=rtcRole;
-  try{
-    if(id && !remoteAlreadyEnded){
-      await updateDoc(doc(db,'calls',id), { status:'ended', endedAt:Date.now(), endedBy: loggedInCitizenId||'' });
-    }
-  }catch(e){}
-  rtcCleanupPc();
-  if(!remoteAlreadyEnded) showToast('Звонок завершён');
-}
-
-function rtcBindPc(callId, role){
-  rtcPc = new RTCPeerConnection(RTC_CONFIG);
-  rtcPc.onicecandidate = async (ev)=>{
-    if(!ev.candidate) return;
-    try{
-      await setDoc(doc(collection(db,'calls',callId,'candidates')), {
-        role, candidate: ev.candidate.toJSON(), createdAt: Date.now()
-      });
-    }catch(e){ console.warn('ice', e); }
-  };
-  rtcPc.ontrack = (ev)=>{
-    const rv=document.getElementById('callRemoteVideo');
-    if(rv){
-      if(!rv.srcObject) rv.srcObject=new MediaStream();
-      rv.srcObject.addTrack(ev.track);
-      try{ rv.play(); }catch(e){}
-    }
-    if(ev.track.kind==='video'){ rtcVideoOn=true; rtcUpdateVideoLayout(); }
-  };
-  rtcPc.onconnectionstatechange = ()=>{
-    const st=rtcPc?.connectionState;
-    if(st==='connected') rtcSetStatus('Соединено');
-    else if(st==='connecting') rtcSetStatus('Соединение...');
-    else if(st==='failed') rtcSetStatus('Не удалось соединиться (NAT/сеть)');
-    else if(st==='disconnected') rtcSetStatus('Связь прервалась...');
-  };
-  if(rtcLocalStream){
-    rtcLocalStream.getTracks().forEach(tr=>rtcPc.addTrack(tr, rtcLocalStream));
-  }
-}
-
-function rtcWatchCandidates(callId, myRole){
-  const other = myRole==='caller' ? 'callee' : 'caller';
-  rtcUnsubCand = onSnapshot(collection(db,'calls',callId,'candidates'), async (snap)=>{
-    for(const d of snap.docChanges()){
-      if(d.type!=='added') continue;
-      const data=d.doc.data();
-      if(data.role===myRole) continue; // only remote
-      if(!data.candidate || !rtcPc) continue;
-      try{ await rtcPc.addIceCandidate(new RTCIceCandidate(data.candidate)); }
-      catch(e){ console.warn('addIce', e); }
-    }
-  });
-}
-
-function rtcWatchCallDoc(callId){
-  rtcUnsubCall = onSnapshot(doc(db,'calls',callId), async (snap)=>{
-    if(!snap.exists()) return;
-    const data=snap.data();
-    if(data.status==='ended'){
-      rtcHangup(true);
-      return;
-    }
-    // caller waits for answer
-    if(rtcRole==='caller' && data.answer && rtcPc && !rtcPc.currentRemoteDescription){
-      try{
-        await rtcPc.setRemoteDescription(data.answer);
-        rtcSetStatus('Ответ получен...');
-      }catch(e){ console.error(e); }
-    }
-    // video flag from peer
-    if(data.videoEnabled){ rtcVideoOn=true; rtcUpdateVideoLayout(); }
-  });
-}
-
-async function startVoiceCall(peerId){
-  if(!loggedInCitizenId) return showToast('ВОЙДИ');
-  if(!peerId || peerId===loggedInCitizenId) return;
-  if(rtcCallId) return showToast('Уже идёт звонок');
-  try{
-    await rtcEnsureMedia(false);
-  }catch(e){
-    showToast('Нет доступа к микрофону');
-    return;
-  }
-  const callId=rtcCallDocId(loggedInCitizenId, peerId);
-  rtcCallId=callId;
-  rtcRole='caller';
-  const peer=citizens.find(c=>c.id===peerId);
-  document.getElementById('callTitle').textContent='Звонок · '+(peer?.nickname||peer?.name||'житель');
-  document.getElementById('callAcceptBtn').style.display='none';
-  rtcShowOverlay(true);
-  rtcSetStatus('Вызов...');
-  rtcBindPc(callId, 'caller');
-  rtcWatchCandidates(callId, 'caller');
-  rtcWatchCallDoc(callId);
-  try{
-    const offer=await rtcPc.createOffer({ offerToReceiveAudio:true, offerToReceiveVideo:true });
-    await rtcPc.setLocalDescription(offer);
-    await setDoc(doc(db,'calls',callId), {
-      id: callId,
-      fromId: loggedInCitizenId,
-      toId: peerId,
-      status: 'ringing',
-      offer: { type: offer.type, sdp: offer.sdp },
-      answer: null,
-      videoEnabled: false,
-      createdAt: Date.now()
-    });
-    rtcSetStatus('Звоним... жду ответа');
-  }catch(e){
-    console.error(e);
-    showToast('Ошибка звонка');
-    rtcCleanupPc();
-  }
-}
-
-async function acceptIncomingCall(){
-  if(!rtcIncoming || !loggedInCitizenId) return;
-  const { callId, fromId, offer } = rtcIncoming;
-  try{
-    await rtcEnsureMedia(false);
-  }catch(e){
-    showToast('Нет доступа к микрофону');
-    return;
-  }
-  rtcCallId=callId;
-  rtcRole='callee';
-  document.getElementById('callAcceptBtn').style.display='none';
-  rtcSetStatus('Отвечаем...');
-  rtcBindPc(callId, 'callee');
-  rtcWatchCandidates(callId, 'callee');
-  rtcWatchCallDoc(callId);
-  try{
-    await rtcPc.setRemoteDescription(offer);
-    const answer=await rtcPc.createAnswer();
-    await rtcPc.setLocalDescription(answer);
-    await updateDoc(doc(db,'calls',callId), {
-      status: 'active',
-      answer: { type: answer.type, sdp: answer.sdp },
-      answeredAt: Date.now()
-    });
-    rtcSetStatus('Соединение...');
-    rtcIncoming=null;
-  }catch(e){
-    console.error(e);
-    showToast('Не удалось ответить');
-    rtcHangup(false);
-  }
-}
-
-async function rtcToggleMute(){
-  if(!rtcLocalStream) return;
-  rtcMuted=!rtcMuted;
-  rtcLocalStream.getAudioTracks().forEach(t=>t.enabled=!rtcMuted);
-  document.getElementById('callMuteBtn').textContent = rtcMuted ? 'Микрофон выкл' : 'Микрофон';
-}
-
-async function rtcToggleVideo(){
-  if(!rtcCallId || !rtcPc) return showToast('Сначала начни звонок');
-  try{
-    if(!rtcVideoOn){
-      await rtcEnsureMedia(true);
-      const vtrack=rtcLocalStream.getVideoTracks()[0];
-      if(!vtrack) return showToast('Нет камеры');
-      const sender=rtcPc.getSenders().find(s=>s.track && s.track.kind==='video');
-      if(sender) await sender.replaceTrack(vtrack);
-      else rtcPc.addTrack(vtrack, rtcLocalStream);
-      rtcVideoOn=true;
-      document.getElementById('callCamBtn').textContent='Видео вкл';
-      await updateDoc(doc(db,'calls',rtcCallId), { videoEnabled:true });
-      // renegotiate
-      if(rtcRole==='caller'){
-        const offer=await rtcPc.createOffer();
-        await rtcPc.setLocalDescription(offer);
-        await updateDoc(doc(db,'calls',rtcCallId), { offer:{ type:offer.type, sdp:offer.sdp }, renegotiate:Date.now() });
-      }
-    } else {
-      rtcLocalStream.getVideoTracks().forEach(t=>{ t.enabled=false; t.stop(); rtcLocalStream.removeTrack(t); });
-      const sender=rtcPc.getSenders().find(s=>s.track && s.track.kind==='video');
-      if(sender) await sender.replaceTrack(null);
-      rtcVideoOn=false;
-      document.getElementById('callCamBtn').textContent='Видео';
-      try{ await updateDoc(doc(db,'calls',rtcCallId), { videoEnabled:false }); }catch(e){}
-    }
-    rtcUpdateVideoLayout();
-    const lv=document.getElementById('callLocalVideo');
-    if(lv) lv.srcObject=rtcLocalStream;
-  }catch(e){
-    console.error(e);
-    showToast('Не удалось переключить видео');
-  }
-}
-
-// Incoming call listener
-if(typeof db !== 'undefined'){
-  // defer until logged in via interval check
-  setInterval(()=>{
-    if(!loggedInCitizenId || window.__rtcIncomingBound) return;
-    window.__rtcIncomingBound=true;
-    try{
-      onSnapshot(collection(db,'calls'), (snap)=>{
-        if(!loggedInCitizenId || rtcCallId) return;
-        snap.docChanges().forEach(ch=>{
-          if(ch.type!=='added' && ch.type!=='modified') return;
-          const data=ch.doc.data();
-          if(data.toId!==loggedInCitizenId) return;
-          if(data.status!=='ringing') return;
-          if(!data.offer) return;
-          // show incoming
-          rtcIncoming={ callId:ch.doc.id, fromId:data.fromId, offer:data.offer };
-          const from=citizens.find(c=>c.id===data.fromId);
-          document.getElementById('callTitle').textContent='Входящий · '+(from?.nickname||from?.name||'житель');
-          document.getElementById('callAcceptBtn').style.display='';
-          rtcSetStatus('Вам звонят...');
-          rtcShowOverlay(true);
-          try{ sounds.receive(); }catch(e){}
-        });
-      });
-    }catch(e){ console.warn(e); window.__rtcIncomingBound=false; }
-  }, 2000);
-}
-
-// Handle renegotiation for callee when caller enables video
-// (watch already sets remote offer only once — extend watch)
-const _rtcWatchCallDoc = rtcWatchCallDoc;
-rtcWatchCallDoc = function(callId){
-  rtcUnsubCall = onSnapshot(doc(db,'calls',callId), async (snap)=>{
-    if(!snap.exists()) return;
-    const data=snap.data();
-    if(data.status==='ended'){ rtcHangup(true); return; }
-    if(rtcRole==='caller' && data.answer && rtcPc && !rtcPc.currentRemoteDescription){
-      try{ await rtcPc.setRemoteDescription(data.answer); rtcSetStatus('Ответ получен...'); }catch(e){ console.error(e); }
-    }
-    if(rtcRole==='callee' && data.offer && data.renegotiate && rtcPc){
-      try{
-        const cur=rtcPc.currentRemoteDescription;
-        if(!cur || cur.sdp!==data.offer.sdp){
-          await rtcPc.setRemoteDescription(data.offer);
-          const answer=await rtcPc.createAnswer();
-          await rtcPc.setLocalDescription(answer);
-          await updateDoc(doc(db,'calls',callId), { answer:{ type:answer.type, sdp:answer.sdp } });
-        }
-      }catch(e){ console.warn('renego', e); }
-    }
-    if(data.videoEnabled){ rtcVideoOn=true; rtcUpdateVideoLayout(); }
-  });
-};
-
-document.getElementById('callHangBtn')?.addEventListener('click', ()=>rtcHangup(false));
-document.getElementById('callAcceptBtn')?.addEventListener('click', ()=>acceptIncomingCall());
-document.getElementById('callMuteBtn')?.addEventListener('click', ()=>rtcToggleMute());
-document.getElementById('callCamBtn')?.addEventListener('click', ()=>rtcToggleVideo());
 
 
 let lastMsgNotifyId=null;
@@ -12456,12 +12178,10 @@ function renderChatHeader(){
         </div>
       </div>
       <div style="display:flex; gap:4px; flex-shrink:0;">
-        <button class="btn btn-call" id="startCallBtn" style="padding:4px 8px; font-size:10px;" title="Звонок">📞</button>
         <button class="btn" id="sendContractBtn" style="padding:4px 8px; font-size:10px;" title="Контракт">📜</button>
         <button class="btn btn-ghost" id="reportPeerBtn" style="padding:4px 6px; font-size:10px;">!</button>
         <button class="btn btn-danger" id="blockPeerBtn" style="padding:4px 6px; font-size:10px;">⊘</button>
       </div>`;
-    document.getElementById('startCallBtn')?.addEventListener('click', ()=>startVoiceCall(c.id));
     document.getElementById('reportPeerBtn').addEventListener('click', openReportModal);
     document.getElementById('blockPeerBtn').addEventListener('click', blockCurrentPeer);
     updateChatPresenceUI();
@@ -12581,6 +12301,13 @@ document.getElementById('chatTextInput').addEventListener('keydown', (e) => {
   if(e.key === 'Enter') sendChatMessage();
 });
 document.getElementById('chatTextInput').addEventListener('input', notifyTyping);
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
 </script>
 </body>
 </html>
