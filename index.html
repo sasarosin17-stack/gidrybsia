@@ -2592,8 +2592,8 @@
     <div class="form-group"><label>Смайлик</label><select id="veEmoji"><option value="">—</option></select></div>
     <div class="form-group"><label>Эффект</label><select id="veEffect"><option value="">Нет</option></select></div>
     <div class="form-group"><label>Маска</label><select id="veMaskSel"><option value="">Нет</option></select></div>
-    <div class="form-group"><label>Или ссылка (YouTube / TikTok / Catbox)</label>
-      <input id="veLink" placeholder="YouTube / TikTok / Catbox / file.garden/..." style="width:100%;">
+    <div class="form-group"><label>Или ссылка (YouTube / TikTok / Videas / Catbox)</label>
+      <input id="veLink" placeholder="YouTube / TikTok / Videas / Catbox / file.garden/..." style="width:100%;">
     </div>
     <div class="form-group"><label>Название</label><input id="veTitle" maxlength="80"></div>
     <div class="form-group"><label>Описание</label><textarea id="veDesc" rows="2"></textarea></div>
@@ -11075,7 +11075,7 @@ document.getElementById('vePublishBtn')?.addEventListener('click',async()=>{
   if(veRecording || veStopping){ showToast('Сначала останови запись'); return; }
   const linkRaw=(document.getElementById('veLink')?.value||'').trim();
   const parsed=linkRaw?parseExternalVideoUrl(linkRaw):null;
-  if(linkRaw && !parsed){ showToast('Ссылка не распознана (YouTube / TikTok / Catbox / File Garden)'); return; }
+  if(linkRaw && !parsed){ showToast('Ссылка не распознана (YouTube / TikTok / Videas / Catbox / File Garden)'); return; }
   if(!parsed && (!veBlob || !veBlob.size)){ showToast('Нет видео и нет ссылки'); return; }
   if(veBlob && veBlob.size>veMax()) return showToast('Файл слишком большой');
   const me=citizens.find(c=>c.id===loggedInCitizenId);
@@ -11106,7 +11106,7 @@ document.getElementById('vePublishBtn')?.addEventListener('click',async()=>{
       base.embedUrl = parsed.embedUrl || '';
       base.directUrl = parsed.directUrl || '';
       base.dataUrl = '';
-      base.mimeType = (parsed.provider==='catbox'||parsed.provider==='direct'||parsed.provider==='filegarden') ? 'video/mp4' : 'text/html';
+      base.mimeType = (parsed.provider==='catbox'||parsed.provider==='direct'||parsed.provider==='filegarden') ? 'video/mp4' : 'text/html'; // youtube/tiktok/videas = embed
     } else {
       let dataUrl=await blobToDataUrl(veBlob);
       let mimeType=(veBlob.type && veBlob.type.indexOf('video/')===0) ? veBlob.type.split(';')[0] : 'video/webm';
@@ -11153,6 +11153,11 @@ function fixVideoDataUrl(dataUrl, mime){
 function parseExternalVideoUrl(raw){
   if(!raw) return null;
   let url=String(raw).trim();
+  // если вставили iframe целиком — вытащим src
+  if(/<iframe/i.test(url)){
+    const m=url.match(/src\s*=\s*["']([^"']+)["']/i);
+    if(m) url=m[1].trim();
+  }
   if(!/^https?:\/\//i.test(url)) url='https://'+url;
   let u;
   try{ u=new URL(url); }catch(e){ return null; }
@@ -11183,6 +11188,19 @@ function parseExternalVideoUrl(raw){
     if(!/\.(mp4|webm|mov|mkv|avi)(\?|$)/i.test(path) && host==='catbox.moe') return null;
     return { provider:'catbox', id:path, pageUrl:url, directUrl:url, orient:'landscape' };
   }
+  // Videas (videas.fr / videas.com / app.videas.fr)
+  if(host==='videas.fr' || host.endsWith('.videas.fr') || host==='videas.com' || host.endsWith('.videas.com') || host==='app.videas.fr'){
+    let id='';
+    const parts=(u.pathname||'').split('/').filter(Boolean);
+    // https://app.videas.fr/embed/VIDEO_ID/
+    const ei=parts.indexOf('embed');
+    if(ei>=0 && parts[ei+1]) id=parts[ei+1];
+    else if(parts.length) id=parts[parts.length-1];
+    id=(id||'').replace(/[^a-zA-Z0-9_-]/g,'');
+    if(!id) return null;
+    const embedUrl='https://app.videas.fr/embed/'+id+'/';
+    return { provider:'videas', id, pageUrl:url, embedUrl, orient:'landscape' };
+  }
   // File Garden
   if(host==='file.garden' || host.endsWith('.file.garden') || host==='filegarden.com' || host.endsWith('.filegarden.com')){
     const path=u.pathname||'';
@@ -11204,6 +11222,11 @@ function videoPlayerHtml(v){
     const orient=v.orient==='portrait'?'portrait':'';
     if(prov==='youtube' && v.embedUrl){
       return `<div class="vid-embed ${orient}"><iframe src="${escapeHtml(v.embedUrl)}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy" title="youtube"></iframe></div>`;
+    }
+    if(prov==='videas' && (v.embedUrl||v.linkUrl)){
+      const emb=v.embedUrl||('https://app.videas.fr/embed/'+(v.id||'')+'/');
+      return `<div class="vid-embed ${orient}"><iframe src="${escapeHtml(emb)}" allow="accelerometer;autoplay;encrypted-media;gyroscope;picture-in-picture;fullscreen" allowfullscreen loading="lazy" title="videas" style="border:0;"></iframe></div>
+      <div class="id-label" style="padding:6px 10px;">Videas · <a href="${escapeHtml(v.linkUrl||emb)}" target="_blank" rel="noopener">открыть</a></div>`;
     }
     if(prov==='tiktok'){
       const emb=v.embedUrl||v.linkUrl||'';
